@@ -1,1 +1,40 @@
-data/*
+# Raw corpus (never committed; ~1GB)
+data/raw/
+data/processed/
+
+# But keep the data dir structure tracked via placeholders if needed
+!data/.gitkeep
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.uv/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Vector store / index artifacts (later milestones)
+.vector_store/
+*.duckdb
+*.sqlite
+*.sqlite3
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Node / frontend (M6+)
+frontend/node_modules/
+frontend/.next/
+frontend/dist/

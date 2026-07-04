@@ -1,0 +1,160 @@
+:root {
+  --bg: #0f1115;
+  --surface: #1a1d27;
+  --surface2: #232733;
+  --text: #e8e6e3;
+  --text-dim: #9a958f;
+  --accent: #6b8afe;
+  --accent-hover: #5470e0;
+  --good: #4caa5e;
+  --bad: #c8553d;
+  --warn: #d4a548;
+  --border: #2d3140;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* --- Login --- */
+.login-page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem;
+}
+.login-card {
+  background: var(--surface); border-radius: 12px; padding: 2.5rem;
+  width: 100%; max-width: 420px; border: 1px solid var(--border);
+}
+.login-card h1 { font-size: 1.5rem; margin-bottom: .5rem; }
+.login-card .subtitle { color: var(--text-dim); font-size: .9rem; margin-bottom: 1.5rem; }
+.login-tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.login-tabs button {
+  flex: 1; padding: .5rem; border: none; border-radius: 8px;
+  background: var(--surface2); color: var(--text-dim); cursor: pointer;
+  font-size: .9rem;
+}
+.login-tabs button.active { background: var(--accent); color: #fff; }
+.login-card form input {
+  width: 100%; padding: .75rem; margin-bottom: .75rem;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: .95rem;
+}
+.login-card form button {
+  width: 100%; padding: .75rem; border: none; border-radius: 8px;
+  background: var(--accent); color: #fff; font-size: 1rem; cursor: pointer;
+}
+.login-card form button:hover { background: var(--accent-hover); }
+.login-card form button:disabled { opacity: .5; }
+.error { color: var(--bad); font-size: .85rem; margin-bottom: .5rem; }
+.cutoff-notice {
+  margin-top: 1rem; font-size: .8rem; color: var(--warn);
+  padding: .5rem; border: 1px solid var(--warn); border-radius: 6px;
+  background: rgba(212, 165, 72, 0.08);
+}
+
+/* --- Navbar --- */
+.navbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1.5rem; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.navbar-brand { font-weight: 700; font-size: 1.1rem; }
+.navbar-links { display: flex; gap: 1rem; }
+.navbar-links a {
+  color: var(--text-dim); text-decoration: none; font-size: .9rem; padding: .3rem .6rem;
+  border-radius: 6px;
+}
+.navbar-links a.active { color: var(--accent); background: var(--surface2); }
+.navbar-user { display: flex; align-items: center; gap: .75rem; font-size: .85rem; }
+.navbar-user button {
+  padding: .35rem .8rem; border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text); border-radius: 6px; cursor: pointer; font-size: .85rem;
+}
+.admin-badge {
+  background: var(--warn); color: var(--bg); padding: .1rem .4rem;
+  border-radius: 4px; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+}
+
+/* --- Layout --- */
+.main-content { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+.loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+/* --- Chat --- */
+.chat-page { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+.chat-controls { padding: .5rem 0; font-size: .85rem; color: var(--text-dim); }
+.chat-messages {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+  gap: 1rem; padding: 1rem 0;
+}
+.empty-hint { color: var(--text-dim); text-align: center; padding: 3rem 1rem; }
+.msg-user { display: flex; justify-content: flex-end; }
+.msg-assistant { display: flex; justify-content: flex-start; }
+.msg-bubble {
+  max-width: 80%; padding: 1rem 1.25rem; border-radius: 12px; line-height: 1.6;
+  font-size: .95rem;
+}
+.msg-bubble.user { background: var(--accent); color: #fff; }
+.msg-bubble.assistant { background: var(--surface); border: 1px solid var(--border); }
+.msg-bubble.error { background: var(--bad); color: #fff; }
+.msg-bubble.loading { background: var(--surface2); color: var(--text-dim); font-style: italic; }
+.answer-text { white-space: pre-wrap; }
+
+/* --- Sources / warnings / disclaimer --- */
+.sources { margin-top: .75rem; padding-top: .5rem; border-top: 1px solid var(--border); }
+.sources h4 { font-size: .8rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: .3rem; }
+.source-item { display: flex; align-items: center; gap: .5rem; margin-bottom: .2rem; font-size: .85rem; }
+.source-item a { color: var(--accent); text-decoration: none; }
+.source-item a:hover { text-decoration: underline; }
+.badge {
+  font-size: .7rem; padding: .1rem .4rem; border-radius: 4px; font-weight: 600;
+}
+.badge.ok { background: var(--good); color: #fff; }
+.badge.bad { background: var(--bad); color: #fff; }
+.celex { color: var(--text-dim); font-family: monospace; font-size: .8rem; }
+
+.warnings { margin-top: .5rem; }
+.warning { font-size: .8rem; color: var(--warn); margin-bottom: .2rem; }
+.grounding-warn {
+  margin-top: .5rem; font-size: .8rem; color: var(--bad);
+  padding: .4rem; border: 1px solid var(--bad); border-radius: 6px;
+}
+.disclaimer {
+  margin-top: .75rem; font-size: .75rem; color: var(--text-dim); font-style: italic;
+  padding: .4rem; border-left: 3px solid var(--border);
+}
+.feedback { margin-top: .5rem; display: flex; gap: .5rem; }
+.feedback button {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  padding: .2rem .5rem; cursor: pointer; font-size: 1rem;
+}
+
+/* --- Chat input --- */
+.chat-input {
+  display: flex; gap: .5rem; padding: .75rem 0;
+  border-top: 1px solid var(--border);
+}
+.chat-input input {
+  flex: 1; padding: .75rem; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: .95rem;
+}
+.chat-input button {
+  padding: .75rem 1.5rem; border: none; border-radius: 8px;
+  background: var(--accent); color: #fff; cursor: pointer; font-size: .95rem;
+}
+.chat-input button:disabled { opacity: .5; }
+
+/* --- History --- */
+.history-page h2 { margin-bottom: 1rem; }
+.history-list { display: flex; flex-direction: column; gap: .75rem; }
+.history-item {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem;
+}
+.hist-q { font-weight: 600; margin-bottom: .3rem; }
+.hist-a { color: var(--text-dim); font-size: .9rem; line-height: 1.5; }
+.hist-meta { margin-top: .3rem; font-size: .75rem; color: var(--text-dim); }

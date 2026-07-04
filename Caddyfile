@@ -1,0 +1,32 @@
+:80 {
+    handle /auth/* {
+        reverse_proxy backend:8000
+    }
+    handle /query {
+        reverse_proxy backend:8000
+    }
+    handle /acts/* {
+        reverse_proxy backend:8000
+    }
+    handle /history {
+        reverse_proxy backend:8000
+    }
+    handle /feedback {
+        reverse_proxy backend:8000
+    }
+    handle /ingest {
+        reverse_proxy backend:8000
+    }
+    handle /health {
+        reverse_proxy backend:8000
+    }
+    handle /docs {
+        reverse_proxy backend:8000
+    }
+    handle /openapi.json {
+        reverse_proxy backend:8000
+    }
+    handle {
+        reverse_proxy frontend:80
+    }
+}
