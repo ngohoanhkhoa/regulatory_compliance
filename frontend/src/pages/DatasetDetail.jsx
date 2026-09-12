@@ -91,6 +91,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
   const [order, setOrder] = useState("desc");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [includeEmbeddings, setIncludeEmbeddings] = useState(false);
   const [error, setError] = useState("");
@@ -185,6 +186,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
       a.remove();
       URL.revokeObjectURL(url);
       showToast(`Exported ${filename}`);
+      setExportOpen(false);
     } catch (err) {
       setError(err.message || "Export failed");
     } finally {
@@ -226,20 +228,15 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
       )}
 
       <div className="dataset-toolbar">
-        <label className="dataset-embed-toggle">
-          <input
-            type="checkbox"
-            checked={includeEmbeddings}
-            onChange={(e) => setIncludeEmbeddings(e.target.checked)}
-          />
-          Include embeddings (larger file)
-        </label>
+        <div />
         <div className="topic-form-actions">
           <Button
             variant="secondary"
             icon={Download}
-            isLoading={exporting}
-            onClick={doExport}
+            onClick={() => {
+              setIncludeEmbeddings(false);
+              setExportOpen(true);
+            }}
           >
             Export bundle
           </Button>
@@ -434,6 +431,43 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             onClick={doDelete}
           >
             Remove dataset
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        title="Export dataset bundle"
+      >
+        <p className="modal-confirm-text">
+          Export <strong>{dataset.name}</strong> as a{" "}
+          <code>.rcdataset.zip</code> bundle (manifest + processed chunks).
+        </p>
+
+        <label className="export-option">
+          <input
+            type="checkbox"
+            checked={includeEmbeddings}
+            onChange={(e) => setIncludeEmbeddings(e.target.checked)}
+          />
+          <span className="export-option-body">
+            <strong>Include precomputed embeddings (larger file)</strong>
+            <span className="export-option-hint">
+              Adds the vector for every chunk (e.g. 1,536 floats each) as{" "}
+              <code>embeddings.npy</code>. The file becomes much larger, but the
+              recipient can import and index it without re-embedding. Leave
+              unchecked for a smaller file that is re-embedded on import.
+            </span>
+          </span>
+        </label>
+
+        <div className="topic-form-actions">
+          <Button variant="ghost" onClick={() => setExportOpen(false)}>
+            Cancel
+          </Button>
+          <Button icon={Download} isLoading={exporting} onClick={doExport}>
+            Export
           </Button>
         </div>
       </Modal>

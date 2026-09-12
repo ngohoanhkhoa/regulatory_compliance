@@ -2483,12 +2483,45 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 8px 0 16px;
 }
 
-.dataset-embed-toggle {
+.export-option {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  color: var(--text-dim);
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface2);
+  cursor: pointer;
+}
+
+.export-option input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.export-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.export-option-hint {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.export-option code,
+.modal-confirm-text code {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 0.78em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface3, var(--surface2));
+  color: var(--accent);
 }
 
 /* Chat dataset selector */
