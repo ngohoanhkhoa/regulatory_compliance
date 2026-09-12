@@ -66,23 +66,6 @@ class QueryResponse(BaseModel):
     intent: str = ""
 
 
-# --- acts -------------------------------------------------------------------- #
-class ActResponse(BaseModel):
-    celex: str
-    act_name: str | None = None
-    status: str | None = None
-    act_type: str | None = None
-    date_document: str | None = None
-    temporal_status: str | None = None
-    eurovoc: str | None = None
-    subject_matter: str | None = None
-    authors: str | None = None
-    treaty: str | None = None
-    eurlex_link: str | None = None
-    eli_link: str | None = None
-    text: str | None = None
-
-
 # --- topics ------------------------------------------------------------------ #
 class TopicBase(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -203,6 +186,37 @@ class DatasetOut(BaseModel):
 class DatasetImportResult(BaseModel):
     status: str
     dataset: DatasetOut
+
+
+class DatasetColumn(BaseModel):
+    key: str
+    label: str
+
+
+class DatasetActsResponse(BaseModel):
+    items: list[dict[str, Any]]
+    total: int
+    columns: list[DatasetColumn] = Field(default_factory=list)
+    sort: str | None = None
+    order: str = "desc"
+    limit: int = 25
+    offset: int = 0
+
+
+class DatasetChunk(BaseModel):
+    chunk_index: int = 0
+    boundary: str = ""
+    text: str = ""
+
+
+class DatasetItem(BaseModel):
+    id: str
+    title: str = ""
+    status: str = ""
+    date: str = ""
+    type: str = ""
+    fields: dict[str, Any] = Field(default_factory=dict)
+    chunks: list[DatasetChunk] = Field(default_factory=list)
 
 
 # --- health ------------------------------------------------------------------ #

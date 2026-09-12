@@ -197,7 +197,7 @@ regulatory_compliance/
 |--------|------|-----------|-------|
 | Auth | `routes_auth.py` | `/auth/register`, `/auth/login`, `/auth/me` | Still present but bypassed |
 | Chat | `routes_chat.py` | `/chat` | Multi-agent orchestration endpoint |
-| Query | `routes_query.py` | `/query`, `/acts/{celex}`, `/history`, `/feedback` | Core query + audit |
+| Query | `routes_query.py` | `/query`, `/history`, `/feedback` | Core query + audit |
 | Admin | `routes_admin.py` | `/api/admin/corpus/*` | Corpus stats, add (auto-ingest), delete |
 | Main | `main.py` | `/health`, `/` | App factory + CORS |
 
@@ -291,7 +291,7 @@ All values are overridable via environment variables loaded from `.env`.
 | `/auth/me` | GET | None | Current user info |
 | `/chat` | POST | None | Ask a question via multi-agent pipeline |
 | `/query` | POST | None | Direct query endpoint |
-| `/acts/{celex}` | GET | None | Full metadata + cleaned text for one act |
+| `/api/datasets/{id}/items/{item_id}` | GET | None | Metadata + full content of one dataset item |
 | `/history` | GET | None | Query history for dummy user |
 | `/feedback` | POST | None | Submit thumbs up/down feedback |
 | `/api/admin/corpus/acts` | POST | Admin | Add regulatory text (auto-ingest) |

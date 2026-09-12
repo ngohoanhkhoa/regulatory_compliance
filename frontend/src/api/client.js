@@ -95,10 +95,6 @@ export async function getHealth() {
   return request("/health");
 }
 
-export async function getAct(celex) {
-  return request(`/acts/${celex}`);
-}
-
 export async function getTopics() {
   return request("/api/topics");
 }
@@ -159,14 +155,22 @@ export async function getDataset(datasetId) {
 
 export async function getDatasetActs(
   datasetId,
-  { query = "", limit = 50, offset = 0 } = {}
+  { query = "", limit = 25, offset = 0, sort = null, order = null } = {}
 ) {
   const params = new URLSearchParams({
     query,
     limit: String(limit),
     offset: String(offset),
   });
+  if (sort) params.set("sort", sort);
+  if (order) params.set("order", order);
   return request(`/api/datasets/${datasetId}/acts?${params.toString()}`);
+}
+
+export async function getDatasetItem(datasetId, itemId) {
+  return request(
+    `/api/datasets/${datasetId}/items/${encodeURIComponent(itemId)}`
+  );
 }
 
 export async function importDataset(file) {

@@ -96,10 +96,12 @@ docker compose up --build
 | `/auth/login` | POST | Login (OAuth2 password grant → JWT) |
 | `/auth/me` | GET | Current user info |
 | `/query` | POST | Ask a question → answer + sources + warnings |
-| `/acts/{celex}` | GET | Full metadata + text for one act |
+| `/api/datasets` | GET | List datasets (regulatory + own documents) |
+| `/api/datasets/{id}/acts` | GET | Canonical, sortable, paginated dataset items |
+| `/api/datasets/{id}/items/{item_id}` | GET | Metadata + full content of one item |
+| `/api/datasets/import` | POST | Import a regulatory dataset bundle (admin only) |
+| `/api/datasets/{id}/export` | GET | Export a dataset bundle |
 | `/history` | GET | Per-user query history (audit trail) |
-| `/api/admin/corpus/acts` | POST | Add regulatory text → auto clean + chunk + embed (admin only) |
-| `/api/admin/corpus/acts/{celex}` | DELETE | Remove an act from corpus + vector store (admin only) |
 | `/health` | GET | Liveness/readiness check |
 | `/feedback` | POST | Thumbs up/down on an answer |
 

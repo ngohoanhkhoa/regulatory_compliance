@@ -179,7 +179,33 @@ def test_dataset_acts_read_only(client, env):
     assert r.status_code == 200
     body = r.json()
     assert body["total"] == 1
-    assert body["items"][0]["celex"] == "32016R0679"
+    assert body["items"][0]["id"] == "32016R0679"
+    assert [c["key"] for c in body["columns"]] == [
+        "id",
+        "title",
+        "status",
+        "date",
+        "chunks",
+    ]
+
+
+def test_dataset_item_content(client, env):
+    token = _admin_token(client)
+    did, _ = _seed_regulatory(env)
+    r = client.get(f"/api/datasets/{did}/items/32016R0679", headers=auth(token))
+    assert r.status_code == 200
+    item = r.json()
+    assert item["id"] == "32016R0679"
+    assert item["title"] == "GDPR"
+    assert len(item["chunks"]) == 2
+    assert item["chunks"][0]["text"] == "Article 1 GDPR scope"
+
+
+def test_dataset_item_missing_404(client, env):
+    token = _admin_token(client)
+    did, _ = _seed_regulatory(env)
+    r = client.get(f"/api/datasets/{did}/items/NOPE", headers=auth(token))
+    assert r.status_code == 404
 
 
 def test_delete_documents_dataset_rejected(client, env):

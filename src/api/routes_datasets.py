@@ -14,7 +14,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from fastapi.responses import Response
 
 from src import config
-from src.api.schemas import DatasetImportResult, DatasetOut
+from src.api.schemas import (
+    DatasetActsResponse,
+    DatasetImportResult,
+    DatasetItem,
+    DatasetOut,
+)
 from src.auth import models
 from src.auth.dependencies import get_current_admin, get_current_user
 from src.corpus import manager as corpus_manager
@@ -60,12 +65,14 @@ def get_dataset(dataset_id: int, user: dict = Depends(get_current_user)):
         conn.close()
 
 
-@router.get("/{dataset_id}/acts")
+@router.get("/{dataset_id}/acts", response_model=DatasetActsResponse)
 def dataset_acts(
     dataset_id: int,
     query: str = Query(default=""),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=25, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
+    sort: str | None = Query(default=None),
+    order: str | None = Query(default=None),
     user: dict = Depends(get_current_user),
 ):
     conn = models.get_db()
@@ -80,7 +87,37 @@ def dataset_acts(
         path = registry.chunks_path_of(dataset)
     finally:
         conn.close()
-    return corpus_manager.list_acts(path, query, limit=limit, offset=offset)
+    return corpus_manager.list_acts(
+        path, query, limit=limit, offset=offset, sort=sort, order=order
+    )
+
+
+@router.get("/{dataset_id}/items/{item_id}", response_model=DatasetItem)
+def dataset_item(
+    dataset_id: int,
+    item_id: str,
+    user: dict = Depends(get_current_user),
+):
+    conn = models.get_db()
+    try:
+        dataset = _get_or_404(conn, dataset_id)
+        if not _can_view(dataset, user):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Not allowed")
+        if dataset.get("kind") != "regulatory":
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "Only regulatory datasets have items"
+            )
+        path = registry.chunks_path_of(dataset)
+    finally:
+        conn.close()
+    try:
+        return corpus_manager.get_item(path, item_id)
+    except KeyError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Item {item_id} not found")
+    except FileNotFoundError:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "Dataset chunks file is missing"
+        )
 
 
 @router.post(
@@ -99,6 +136,7 @@ async def import_dataset(
             )
         except bundle.DatasetBundleError as exc:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc))
+        corpus_manager.clear_cache()
         return DatasetImportResult(
             status="ok", dataset=registry.serialize(conn, dataset)
         )
@@ -146,8 +184,10 @@ def delete_dataset(dataset_id: int, user: dict = Depends(get_current_admin)):
                 status.HTTP_400_BAD_REQUEST,
                 "Manage individual documents instead of deleting your library.",
             )
+        path = registry.chunks_path_of(dataset)
         _purge_dataset(dataset)
         models.delete_dataset(conn, dataset_id)
+        corpus_manager.clear_cache(path)
         return {"id": dataset_id, "status": "deleted"}
     finally:
         conn.close()

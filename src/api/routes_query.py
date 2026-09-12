@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-import polars as pl
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src import config
 from src.api.schemas import (
-    ActResponse,
     FeedbackRequest,
     QueryRequest,
     QueryResponse,
@@ -67,43 +65,6 @@ def query(
         ungrounded_celex=result["ungrounded_celex"],
         model=result.get("model", ""),
         query_log_id=qid,
-    )
-
-
-@router.get("/acts/{celex}", response_model=ActResponse)
-def get_act(celex: str):
-    """Return full metadata + cleaned text for one act (§8).
-
-    Reads directly from the raw CSV via polars lazy scan (cheap, no index
-    needed) and returns the cleaned text.
-    """
-    from src.ingestion import clean_text, load_csv
-
-    if not load_csv.validate_header() == []:
-        pass  # header OK
-    try:
-        lf = load_csv._scan()
-    except FileNotFoundError:
-        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Raw CSV not available")
-    df = lf.filter(pl.col("CELEX") == celex).collect()
-    if df.is_empty():
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"Act {celex} not found")
-    row = df.row(0, named=True)
-    text = clean_text.clean_text(row.get("act_raw_text") or "")
-    return ActResponse(
-        celex=row["CELEX"],
-        act_name=row.get("Act_name"),
-        status=row.get("Status"),
-        act_type=row.get("Act_type"),
-        date_document=row.get("Date_document"),
-        temporal_status=row.get("Temporal_status"),
-        eurovoc=row.get("EUROVOC"),
-        subject_matter=row.get("Subject_matter"),
-        authors=row.get("Authors"),
-        treaty=row.get("Treaty"),
-        eurlex_link=row.get("Eurlex_link"),
-        eli_link=row.get("ELI_link"),
-        text=text,
     )
 
 

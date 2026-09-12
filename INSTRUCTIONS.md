@@ -92,7 +92,7 @@ Key columns used by the pipeline:
                              │ HTTPS
 ┌───────────────────────────▼────────────────────────────────┐
 │                        FastAPI Backend                        │
-│  /auth/*  /query   /api/admin/corpus/*   /health   /acts/{celex}  /feedback│
+│  /auth/*  /query   /api/datasets/*   /health   /feedback       │
 │                    (JWT/session auth middleware)               │
 └───────┬───────────────────┬───────────────────┬─────────────┘
         │                   │                   │
@@ -255,7 +255,7 @@ regulatory_compliance/
 | `/auth/login` | POST | Authenticate, return session/JWT |
 | `/auth/me` | GET | Current user info |
 | `/query` | POST | `{question, filters?}` → `{answer, sources[], warnings[]}` (auth required; logged against the requesting user) |
-| `/acts/{celex}` | GET | Return full metadata + text for a single act |
+| `/api/datasets/{id}/items/{item_id}` | GET | Metadata + content of a single dataset item |
 | `/history` | GET | Current user's past queries/answers |
 | `/api/admin/corpus/acts` | POST | Add regulatory text; auto clean + chunk + embed (admin only) |
 | `/health` | GET | Liveness/readiness check (vector store reachable, OpenCode Go reachable) |
@@ -327,7 +327,7 @@ Response schema for `/query` should always include:
 2. **M2** — Embedding + vector store indexing; verify retrieval quality manually.
 3. **M3** — Hybrid retrieval (vector + BM25) + metadata filtering + cross-encoder reranker.
 4. **M4** — OpenCode Go API integration (default: DeepSeek V4 Flash) + prompt template + citation formatting.
-5. **M5** — FastAPI backend wiring `/query`, `/health`, `/acts/{celex}`, plus `/auth/*` and `/history`.
+5. **M5** — FastAPI backend wiring `/query`, `/health`, `/api/datasets/*`, plus `/auth/*` and `/history`.
 6. **M6** — React/Next.js web frontend: login, chat view, source/citation panel, per-user history — connected to the backend.
 7. **M7** — Audit logging, grounding guardrail, basic eval suite.
 8. **M8** — Docker Compose (backend + frontend + vector store) behind a reverse proxy with HTTPS, packaging, run scripts, README, hardening for unattended multi-user operation.
