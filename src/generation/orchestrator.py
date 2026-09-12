@@ -61,6 +61,7 @@ def answer_question(
     include_repealed: bool = False,
     session_id: str | None = None,
     dataset_ids: list[int] | None = None,
+    document_ids: list[int] | None = None,
 ) -> dict[str, Any]:
     """Produce a fully-cited answer for `question`."""
     if retrieved is None:
@@ -73,6 +74,7 @@ def answer_question(
                 top_k=top_k,
                 filters=filters,
                 include_repealed=include_repealed,
+                document_ids=document_ids,
             )
         else:
             retrieved = hybrid_retriever.retrieve(

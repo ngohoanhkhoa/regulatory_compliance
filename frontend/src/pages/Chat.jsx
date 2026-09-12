@@ -248,6 +248,14 @@ export default function Chat() {
       return [];
     }
   });
+  const [documents, setDocuments] = useState([]);
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("chatDocumentIds") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const endRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -286,6 +294,38 @@ export default function Chat() {
       cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]
     );
 
+  const docsDataset = datasets.find((d) => d.kind === "documents");
+  const docsSelected = !!(
+    docsDataset && selectedDatasetIds.includes(docsDataset.id)
+  );
+
+  const toggleDocument = (id) =>
+    setSelectedDocumentIds((cur) =>
+      cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]
+    );
+
+  // Load the user's documents when the documents dataset is selected, and drop
+  // any selected ids that no longer exist (deleted files).
+  useEffect(() => {
+    if (!docsSelected) return;
+    api
+      .getDocuments()
+      .then((docs) => {
+        setDocuments(docs);
+        setSelectedDocumentIds((cur) =>
+          cur.filter((id) => docs.some((d) => d.id === id))
+        );
+      })
+      .catch(() => {});
+  }, [docsSelected]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "chatDocumentIds",
+      JSON.stringify(selectedDocumentIds)
+    );
+  }, [selectedDocumentIds]);
+
   const ask = async (e) => {
     e.preventDefault();
     const question = input.trim();
@@ -303,13 +343,17 @@ export default function Chat() {
         .map((d) => d.id)
         .sort((a, b) => a - b);
       const sel = [...selectedDatasetIds].sort((a, b) => a - b);
+      const documentIds =
+        docsSelected && selectedDocumentIds.length ? selectedDocumentIds : null;
       const isDefault =
+        !documentIds &&
         sel.length > 0 &&
         sel.length === regSorted.length &&
         sel.every((v, i) => v === regSorted[i]);
       const res = await api.chat(question, {
         include_repealed: includeRepealed,
         dataset_ids: isDefault ? null : selectedDatasetIds,
+        document_ids: documentIds,
       });
       setMessages((m) => [
         ...m,
@@ -491,6 +535,39 @@ export default function Chat() {
                       <FileText className="w-3 h-3" />
                     )}
                     {d.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {docsSelected && documents.length > 0 && (
+            <div className="document-selector">
+              <span className="dataset-selector-label">Documents</span>
+              <div className="document-chips">
+                <button
+                  type="button"
+                  className={`dataset-chip ${
+                    selectedDocumentIds.length === 0 ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedDocumentIds([])}
+                  title="Use all documents in this dataset"
+                >
+                  All
+                </button>
+                {documents.map((doc) => (
+                  <button
+                    key={doc.id}
+                    type="button"
+                    className={`dataset-chip ${
+                      selectedDocumentIds.includes(doc.id) ? "active" : ""
+                    }`}
+                    onClick={() => toggleDocument(doc.id)}
+                    title={
+                      doc.tags ? `${doc.filename} · ${doc.tags}` : doc.filename
+                    }
+                  >
+                    <FileText className="w-3 h-3" />
+                    {doc.filename}
                   </button>
                 ))}
               </div>

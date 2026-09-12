@@ -38,6 +38,28 @@ def _annotate(meta: dict[str, Any], dataset: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _documents_filters(
+    dataset: dict[str, Any], document_ids: list[int] | None
+) -> dict[str, Any] | None:
+    """Chroma filter for a documents dataset: always owner-scoped, optionally
+    narrowed to specific ``document_id``s.
+
+    Chroma expects a single operator per ``where`` entry, so multiple conditions
+    are combined with ``$and``.
+    """
+    conditions: list[dict[str, Any]] = []
+    owner = dataset.get("owner_user_id")
+    if owner is not None:
+        conditions.append({"user_id": int(owner)})
+    if document_ids:
+        conditions.append({"document_id": {"$in": [int(i) for i in document_ids]}})
+    if not conditions:
+        return None
+    if len(conditions) == 1:
+        return conditions[0]
+    return {"$and": conditions}
+
+
 def _ranked_lists_for_dataset(
     dataset: dict[str, Any],
     question: str,
@@ -46,6 +68,7 @@ def _ranked_lists_for_dataset(
     n_candidates: int,
     filters: dict[str, Any] | None,
     include_repealed: bool,
+    document_ids: list[int] | None = None,
 ) -> list[list[dict[str, Any]]]:
     lists: list[list[dict[str, Any]]] = []
     collection = registry.collection_of(dataset)
@@ -60,11 +83,10 @@ def _ranked_lists_for_dataset(
             store = None
         if store is not None:
             if kind == "documents":
-                owner = dataset.get("owner_user_id")
                 hits = store.query(
                     question_embedding,
                     n_results=n_candidates,
-                    filters={"user_id": int(owner)} if owner is not None else None,
+                    filters=_documents_filters(dataset, document_ids),
                     include_repealed=True,
                 )
             else:
@@ -123,6 +145,7 @@ def retrieve(
     top_k: int = config.DEFAULT_TOP_K,
     filters: dict[str, Any] | None = None,
     include_repealed: bool = False,
+    document_ids: list[int] | None = None,
 ) -> list[dict[str, Any]]:
     """Retrieve across the given datasets and return the top-k reranked chunks."""
     conn = models.get_db()
@@ -150,6 +173,7 @@ def retrieve(
                 n_candidates=n_candidates,
                 filters=filters,
                 include_repealed=include_repealed,
+                document_ids=document_ids,
             )
         )
     if not all_lists:

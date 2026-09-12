@@ -40,6 +40,7 @@ def query(
         include_repealed=req.include_repealed,
         session_id=f"regcom-user-{user['id']}",
         dataset_ids=req.dataset_ids,
+        document_ids=req.document_ids,
     )
     # --- audit log (§9.3) ---------------------------------------------------
     conn = models.get_db()

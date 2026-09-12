@@ -133,6 +133,7 @@ def _mock_orchestrator(monkeypatch, answer="Mock answer about 32016R0679.", grou
         include_repealed=False,
         session_id=None,
         dataset_ids=None,
+        document_ids=None,
     ):
         return {
             "answer": answer,
@@ -193,6 +194,7 @@ def test_query_with_filters_and_top_k(client, admin_token, monkeypatch):
         include_repealed=False,
         session_id=None,
         dataset_ids=None,
+        document_ids=None,
     ):
         captured["top_k"] = top_k
         captured["filters"] = filters
@@ -279,3 +281,37 @@ def test_feedback_requires_auth(client):
 def test_feedback_bad_rating(client, admin_token):
     r = client.post("/feedback", json={"rating": 5}, headers=auth_headers(admin_token))
     assert r.status_code == 422
+
+
+# --- chat -------------------------------------------------------------------- #
+
+def test_chat_forwards_document_ids(client, admin_token, monkeypatch):
+    captured = {}
+
+    class FakeAgent:
+        def answer(self, question, user_id, **kwargs):
+            captured["question"] = question
+            captured.update(kwargs)
+            return {
+                "answer": "A sufficiently long mock answer that mentions matching content.",
+                "sources": [],
+                "warnings": [],
+                "disclaimer": "d",
+                "grounded": True,
+                "ungrounded_celex": [],
+                "model": "mock",
+            }
+
+    monkeypatch.setattr("src.api.routes_chat.get_qa_agent", lambda: FakeAgent())
+    r = client.post(
+        "/chat",
+        json={
+            "question": "What obligations are in my contract?",
+            "dataset_ids": [2],
+            "document_ids": [5, 6],
+        },
+        headers=auth_headers(admin_token),
+    )
+    assert r.status_code == 200
+    assert captured.get("dataset_ids") == [2]
+    assert captured.get("document_ids") == [5, 6]

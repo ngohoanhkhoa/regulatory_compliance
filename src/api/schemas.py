@@ -77,6 +77,7 @@ class QueryRequest(BaseModel):
     include_repealed: bool = False
     top_k: int | None = Field(default=None, ge=1, le=25)
     dataset_ids: list[int] | None = Field(default=None)
+    document_ids: list[int] | None = Field(default=None)
 
 
 class Source(BaseModel):

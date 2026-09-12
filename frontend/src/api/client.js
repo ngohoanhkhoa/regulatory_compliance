@@ -143,6 +143,8 @@ export async function chat(question, opts = {}) {
       top_k: opts.top_k || null,
       dataset_ids:
         opts.dataset_ids && opts.dataset_ids.length ? opts.dataset_ids : null,
+      document_ids:
+        opts.document_ids && opts.document_ids.length ? opts.document_ids : null,
     },
   });
 }

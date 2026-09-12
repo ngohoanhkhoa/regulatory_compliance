@@ -17,6 +17,7 @@ class QAAgent:
             include_repealed=bool(kwargs.get("include_repealed")),
             top_k=kwargs.get("top_k"),
             dataset_ids=kwargs.get("dataset_ids"),
+            document_ids=kwargs.get("document_ids"),
         )
         filters = req.filters.model_dump(exclude_none=True) if req.filters else None
         result = orchestrator.answer_question(
@@ -26,6 +27,7 @@ class QAAgent:
             include_repealed=req.include_repealed,
             session_id=kwargs.get("session_id"),
             dataset_ids=req.dataset_ids,
+            document_ids=req.document_ids,
         )
         if result is None:
             return {

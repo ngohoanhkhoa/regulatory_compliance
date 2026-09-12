@@ -41,6 +41,7 @@ def chat(request: QueryRequest, user: dict = Depends(get_current_user)):
             top_k=request.top_k,
             include_repealed=request.include_repealed,
             dataset_ids=request.dataset_ids,
+            document_ids=request.document_ids,
             # Stable per-user session id for OpenCode Go routing/prompt caching.
             session_id=f"regcom-user-{user['id']}",
         )

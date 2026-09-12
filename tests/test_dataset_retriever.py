@@ -101,3 +101,34 @@ def test_retrieve_fuses_multiple_datasets(env, monkeypatch):
 def test_retrieve_unknown_dataset_returns_empty(env, monkeypatch):
     monkeypatch.setattr("src.retrieval.vector_store.VectorStore", FakeVectorStore)
     assert dataset_retriever.retrieve("q", [9999], question_embedder=FakeEmbedder()) == []
+
+
+def test_documents_filters_owner_and_document_ids():
+    ds = {"owner_user_id": 7}
+    assert dataset_retriever._documents_filters(ds, None) == {"user_id": 7}
+    assert dataset_retriever._documents_filters(ds, [3, 4]) == {
+        "$and": [{"user_id": 7}, {"document_id": {"$in": [3, 4]}}]
+    }
+
+
+def test_retrieve_passes_document_filter(env, monkeypatch):
+    captured = {}
+
+    class CapturingStore(FakeVectorStore):
+        def query(self, embedding, *, n_results=10, filters=None, include_repealed=False):
+            captured["filters"] = filters
+            return []
+
+    monkeypatch.setattr("src.retrieval.vector_store.VectorStore", CapturingStore)
+    dataset_retriever.retrieve(
+        "q",
+        [env["docs"]],
+        question_embedder=FakeEmbedder(),
+        document_ids=[3, 4],
+    )
+    assert captured["filters"] == {
+        "$and": [
+            {"user_id": env["uid"]},
+            {"document_id": {"$in": [3, 4]}},
+        ]
+    }
