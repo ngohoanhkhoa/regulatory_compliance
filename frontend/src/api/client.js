@@ -62,20 +62,26 @@ export function logout() {
   localStorage.removeItem("token");
 }
 
-export async function query(question, opts = {}) {
-  return request("/query", {
+export async function chat(question, opts = {}) {
+  return request("/chat", {
     method: "POST",
     body: {
       question,
       filters: opts.filters || null,
       include_repealed: opts.include_repealed || false,
       top_k: opts.top_k || null,
+      dataset_ids:
+        opts.dataset_ids && opts.dataset_ids.length ? opts.dataset_ids : null,
     },
   });
 }
 
 export async function getHistory(limit = 50) {
   return request(`/history?limit=${limit}`);
+}
+
+export async function deleteHistory(queryLogId) {
+  return request(`/history/${queryLogId}`, { method: "DELETE" });
 }
 
 export async function submitFeedback(queryLogId, rating, comment) {
@@ -91,4 +97,105 @@ export async function getHealth() {
 
 export async function getAct(celex) {
   return request(`/acts/${celex}`);
+}
+
+export async function getTopics() {
+  return request("/api/topics");
+}
+
+export async function createTopic(topic) {
+  return request("/api/topics", { method: "POST", body: topic });
+}
+
+export async function updateTopic(topicId, topic) {
+  return request(`/api/topics/${topicId}`, { method: "PUT", body: topic });
+}
+
+export async function deleteTopic(topicId) {
+  return request(`/api/topics/${topicId}`, { method: "DELETE" });
+}
+
+export async function getTopicTimeline(topicId) {
+  return request(`/api/topics/${topicId}/timeline`);
+}
+
+export async function refreshTopic(topicId) {
+  return request(`/api/topics/${topicId}/refresh`, { method: "POST" });
+}
+
+// --- personal documents ------------------------------------------------------
+
+export async function getDocuments() {
+  return request("/api/documents");
+}
+
+export async function uploadDocument(file, tags = "") {
+  const form = new FormData();
+  form.append("file", file);
+  if (tags) form.append("tags", tags);
+  return request("/api/documents", { method: "POST", body: form });
+}
+
+export async function deleteDocument(documentId) {
+  return request(`/api/documents/${documentId}`, { method: "DELETE" });
+}
+
+export async function searchDocuments(query, topK = 5) {
+  return request("/api/documents/search", {
+    method: "POST",
+    body: { query, top_k: topK },
+  });
+}
+
+// --- datasets ----------------------------------------------------------------
+
+export async function getDatasets() {
+  return request("/api/datasets");
+}
+
+export async function getDataset(datasetId) {
+  return request(`/api/datasets/${datasetId}`);
+}
+
+export async function getDatasetActs(
+  datasetId,
+  { query = "", limit = 50, offset = 0 } = {}
+) {
+  const params = new URLSearchParams({
+    query,
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return request(`/api/datasets/${datasetId}/acts?${params.toString()}`);
+}
+
+export async function importDataset(file) {
+  const form = new FormData();
+  form.append("file", file);
+  return request("/api/datasets/import", { method: "POST", body: form });
+}
+
+export async function deleteDataset(datasetId) {
+  return request(`/api/datasets/${datasetId}`, { method: "DELETE" });
+}
+
+export async function downloadDataset(datasetId, includeEmbeddings = true) {
+  const token = getToken();
+  const res = await fetch(
+    `/api/datasets/${datasetId}/export?include_embeddings=${includeEmbeddings}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+  );
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      detail = (await res.json()).detail || detail;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  return { blob, filename: match ? match[1] : `dataset-${datasetId}.zip` };
 }

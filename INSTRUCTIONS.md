@@ -92,7 +92,7 @@ Key columns used by the pipeline:
                              │ HTTPS
 ┌───────────────────────────▼────────────────────────────────┐
 │                        FastAPI Backend                        │
-│  /auth/*  /query   /ingest   /health   /acts/{celex}  /feedback│
+│  /auth/*  /query   /api/admin/corpus/*   /health   /acts/{celex}  /feedback│
 │                    (JWT/session auth middleware)               │
 └───────┬───────────────────┬───────────────────┬─────────────┘
         │                   │                   │
@@ -218,7 +218,7 @@ regulatory_compliance/
 │   │   ├── main.py               # FastAPI app
 │   │   ├── routes_auth.py
 │   │   ├── routes_query.py
-│   │   ├── routes_ingest.py
+│   │   ├── routes_admin.py       # corpus stats / add / delete (admin)
 │   │   └── schemas.py            # pydantic models
 │   └── config.py                 # paths, model names, chunk sizes, top-k, etc.
 ├── frontend/                     # React (or Next.js) multi-user web app
@@ -257,7 +257,7 @@ regulatory_compliance/
 | `/query` | POST | `{question, filters?}` → `{answer, sources[], warnings[]}` (auth required; logged against the requesting user) |
 | `/acts/{celex}` | GET | Return full metadata + text for a single act |
 | `/history` | GET | Current user's past queries/answers |
-| `/ingest` | POST | Trigger/re-run ingestion pipeline (admin only) |
+| `/api/admin/corpus/acts` | POST | Add regulatory text; auto clean + chunk + embed (admin only) |
 | `/health` | GET | Liveness/readiness check (vector store reachable, OpenCode Go reachable) |
 | `/feedback` | POST | Log thumbs up/down + optional comment on an answer (for later eval) |
 
@@ -299,7 +299,7 @@ Response schema for `/query` should always include:
 - Runs as a service (`docker-compose up` or `uvicorn` + `systemd`/frontend build served via nginx/Caddy) accessible over the local network to multiple users, with HTTPS via a reverse proxy.
 - Ingestion (loading, cleaning, chunking, embedding, indexing) works fully offline once packages/embedding models are downloaded.
 - Answering queries requires an internet connection and a valid `OPENCODE_GO_API_KEY` (generation step only).
-- Data refresh = re-run `/ingest` when a new CEPS EurLex CSV export is obtained; keep ingestion idempotent (upsert by `CELEX` + `chunk_index`).
+- Data refresh is a developer operation (CLI: `python -m src.ingestion.pipeline` then `src.ingestion.embed_and_index`), not exposed in the app. Runtime additions made by admins auto-ingest immediately and are replayed from `data/processed/manual_acts.jsonl` on the next full rebuild; keep ingestion idempotent (upsert by `CELEX` + `chunk_index`).
 - Backups: vector store directory + database (SQLite file or Postgres dump, including the user/auth tables) should be included in the regular backup routine.
 - Monitor OpenCode Go subscription/rate-limit status; surface remaining quota or renewal needs in `/health` if the API exposes that info.
 

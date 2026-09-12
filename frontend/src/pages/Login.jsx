@@ -1,11 +1,23 @@
 import { useState } from "react";
 import { useAuth } from "../api/AuthContext";
+import * as api from "../api/client";
+import {
+  Shield,
+  MessageSquare,
+  BookOpen,
+  User,
+  Lock,
+  AlertCircle,
+  Info,
+} from "lucide-react";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 export default function Login() {
   const { signIn } = useAuth();
   const [mode, setMode] = useState("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("admin");
+  const [password, setPassword] = useState("0000");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -28,53 +40,78 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>EU Regulatory Compliance</h1>
+        <div className="logo">
+          <Shield className="w-8 h-8 text-[var(--accent)]" />
+          <h1>EU Regulatory Compliance</h1>
+        </div>
+
         <p className="subtitle">
-          Ask questions about EU legal obligations. Answers are grounded in the
-          CEPS EurLex dataset.
+          AI-powered answers about EU legal obligations, grounded in the
+          CEPS EurLex dataset with full citations.
         </p>
+
         <div className="login-tabs">
           <button
             className={mode === "login" ? "active" : ""}
-            onClick={() => setMode("login")}
+            onClick={() => { setMode("login"); setError(""); }}
           >
+            <User className="w-4 h-4 inline mr-1" />
             Sign In
           </button>
           <button
             className={mode === "register" ? "active" : ""}
-            onClick={() => setMode("register")}
+            onClick={() => { setMode("register"); setError(""); }}
           >
+            <BookOpen className="w-4 h-4 inline mr-1" />
             Register
           </button>
         </div>
+
         <form onSubmit={submit}>
-          <input
+          <Input
+            icon={User}
             type="text"
-            placeholder="Username (min 3 chars)"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             minLength={3}
             required
           />
-          <input
+          <Input
+            icon={Lock}
             type="password"
-            placeholder="Password (min 8 chars)"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
             required
           />
-          {error && <div className="error">{error}</div>}
-          <button type="submit" disabled={busy}>
-            {busy ? "Please wait…" : mode === "login" ? "Sign In" : "Register & Sign In"}
-          </button>
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--bad-muted)] border border-[var(--bad)] text-[var(--bad)] text-sm">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={busy}
+            className="w-full"
+          >
+            {mode === "login" ? "Sign In" : "Create Account"}
+          </Button>
         </form>
-        <p className="cutoff-notice">
-          Dataset frozen at August 2019 — recent legislation may be missing.
-        </p>
+
+        <div className="flex items-start gap-2 mt-6 p-3 rounded-lg bg-[var(--warn-muted)] border border-[var(--warn)]">
+          <Info className="w-4 h-4 text-[var(--warn)] shrink-0 mt-0.5" />
+          <p className="text-xs text-[var(--warn)] leading-relaxed">
+            Dataset frozen at August 2019. Recent legislation may be missing.
+            This tool is not a source of legal advice.
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
-import * as api from "../api/client";

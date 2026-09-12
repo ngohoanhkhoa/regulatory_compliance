@@ -6,13 +6,14 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/auth": "http://localhost:8000",
-      "/query": "http://localhost:8000",
-      "/acts": "http://localhost:8000",
-      "/history": "http://localhost:8000",
-      "/feedback": "http://localhost:8000",
-      "/health": "http://localhost:8000",
-      "/ingest": "http://localhost:8000",
+      "^(/auth|/chat|/query|/acts|/history|/feedback|/health|/api)": {
+        target: "http://localhost:8000",
+        bypass(req) {
+          if (req.headers.accept?.includes("text/html")) {
+            return "/index.html";
+          }
+        },
+      },
     },
   },
   build: { outDir: "dist" },

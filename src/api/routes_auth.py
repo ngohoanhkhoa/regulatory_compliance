@@ -23,9 +23,10 @@ def register(payload: UserCreate):
             conn,
             username=payload.username,
             hashed_password=security.hash_password(payload.password),
-            # The very first user becomes admin so /ingest is callable without manual SQL.
+            # The very first user becomes admin so corpus admin is usable without manual SQL.
             is_admin=first_user,
         )
+        models.ensure_user_documents_dataset(conn, uid)
         user = models.get_user_by_id(conn, uid)
         return UserOut(id=user["id"], username=user["username"], is_admin=bool(user["is_admin"]))
     finally:

@@ -1,6 +1,8 @@
-# Raw corpus (never committed; ~1GB)
+# Raw corpus + user data (never committed)
 data/raw/
 data/processed/
+data/uploads/
+data/datasets/
 
 # But keep the data dir structure tracked via placeholders if needed
 !data/.gitkeep
@@ -25,6 +27,7 @@ htmlcov/
 
 # Vector store / index artifacts (later milestones)
 .vector_store/
+.vector_store_backup_*/
 *.duckdb
 *.sqlite
 *.sqlite3

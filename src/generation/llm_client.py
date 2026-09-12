@@ -23,10 +23,15 @@ generation layer never imports the transport directly.
 from __future__ import annotations
 
 import time
+import uuid
 from dataclasses import dataclass
 from typing import Any, Protocol
 
 from src import config
+
+# A process-stable default session id. OpenCode Go rejects requests without an
+# x-opencode-session header; callers may override this per conversation.
+_DEFAULT_SESSION_ID: str = f"regcom-{uuid.uuid4().hex}"
 
 
 class LLMError(RuntimeError):
@@ -91,6 +96,7 @@ class OpenCodeGoClient:
         temperature: float | None = None,
         max_tokens: int | None = None,
         stream: bool = False,
+        session_id: str | None = None,
         **_: Any,
     ) -> LLMResponse:
         import httpx
@@ -98,6 +104,10 @@ class OpenCodeGoClient:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            # OpenCode Go requires a client User-Agent and a stable session id
+            # (https://opencode.ai/docs/go/#where-can-i-use-it).
+            "User-Agent": config.OPENCODE_GO_USER_AGENT,
+            "x-opencode-session": session_id or _DEFAULT_SESSION_ID,
         }
         payload = {
             "model": self.model,

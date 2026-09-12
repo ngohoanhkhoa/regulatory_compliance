@@ -2,6 +2,9 @@
     handle /auth/* {
         reverse_proxy backend:8000
     }
+    handle /chat {
+        reverse_proxy backend:8000
+    }
     handle /query {
         reverse_proxy backend:8000
     }
@@ -11,10 +14,10 @@
     handle /history {
         reverse_proxy backend:8000
     }
-    handle /feedback {
+    handle /api/* {
         reverse_proxy backend:8000
     }
-    handle /ingest {
+    handle /feedback {
         reverse_proxy backend:8000
     }
     handle /health {

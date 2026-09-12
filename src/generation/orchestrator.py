@@ -59,16 +59,29 @@ def answer_question(
     top_k: int = config.DEFAULT_TOP_K,
     filters: dict[str, Any] | None = None,
     include_repealed: bool = False,
+    session_id: str | None = None,
+    dataset_ids: list[int] | None = None,
 ) -> dict[str, Any]:
     """Produce a fully-cited answer for `question`."""
     if retrieved is None:
-        retrieved = hybrid_retriever.retrieve(
-            question, top_k=top_k, filters=filters, include_repealed=include_repealed
-        )
+        if dataset_ids:
+            from src.retrieval import dataset_retriever
+
+            retrieved = dataset_retriever.retrieve(
+                question,
+                dataset_ids,
+                top_k=top_k,
+                filters=filters,
+                include_repealed=include_repealed,
+            )
+        else:
+            retrieved = hybrid_retriever.retrieve(
+                question, top_k=top_k, filters=filters, include_repealed=include_repealed
+            )
     builder = prompt_builder.get_prompt_builder()
     messages = builder.build_messages(question, retrieved)
     llm = llm or llm_client.get_llm_client()
-    response = llm.complete(messages)
+    response = llm.complete(messages, session_id=session_id)
     answer_text = response.text
 
     sources = cf.build_sources(retrieved)

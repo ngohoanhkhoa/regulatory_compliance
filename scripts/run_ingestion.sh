@@ -19,6 +19,7 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 
+unset VIRTUAL_ENV
 SAMPLE="${1:-}"
 if [[ -n "$SAMPLE" ]]; then
   uv run python -m src.ingestion.pipeline --sample "$SAMPLE"

@@ -125,7 +125,15 @@ def test_query_requires_auth(client):
 
 def _mock_orchestrator(monkeypatch, answer="Mock answer about 32016R0679.", grounded=True):
     """Replace orchestrator.answer_question with a deterministic stub."""
-    def fake_answer_question(question, *, top_k=7, filters=None, include_repealed=False):
+    def fake_answer_question(
+        question,
+        *,
+        top_k=7,
+        filters=None,
+        include_repealed=False,
+        session_id=None,
+        dataset_ids=None,
+    ):
         return {
             "answer": answer,
             "sources": [
@@ -177,7 +185,15 @@ def test_query_ungrounded_passes_through(client, admin_token, monkeypatch):
 def test_query_with_filters_and_top_k(client, admin_token, monkeypatch):
     captured = {}
 
-    def fake(question, *, top_k=7, filters=None, include_repealed=False):
+    def fake(
+        question,
+        *,
+        top_k=7,
+        filters=None,
+        include_repealed=False,
+        session_id=None,
+        dataset_ids=None,
+    ):
         captured["top_k"] = top_k
         captured["filters"] = filters
         captured["include_repealed"] = include_repealed
@@ -263,14 +279,3 @@ def test_feedback_requires_auth(client):
 def test_feedback_bad_rating(client, admin_token):
     r = client.post("/feedback", json={"rating": 5}, headers=auth_headers(admin_token))
     assert r.status_code == 422
-
-
-# --- ingest (admin-only) --------------------------------------------------- #
-
-def test_ingest_requires_admin(client, user_token):
-    r = client.post("/ingest", headers=auth_headers(user_token))
-    assert r.status_code == 403
-
-
-def test_ingest_requires_auth(client):
-    assert client.post("/ingest").status_code == 401

@@ -98,7 +98,8 @@ docker compose up --build
 | `/query` | POST | Ask a question → answer + sources + warnings |
 | `/acts/{celex}` | GET | Full metadata + text for one act |
 | `/history` | GET | Per-user query history (audit trail) |
-| `/ingest` | POST | Re-run ingestion (admin only) |
+| `/api/admin/corpus/acts` | POST | Add regulatory text → auto clean + chunk + embed (admin only) |
+| `/api/admin/corpus/acts/{celex}` | DELETE | Remove an act from corpus + vector store (admin only) |
 | `/health` | GET | Liveness/readiness check |
 | `/feedback` | POST | Thumbs up/down on an answer |
 
@@ -108,10 +109,10 @@ docker compose up --build
 |---|---|
 | Language | Python 3.12 (uv-managed) |
 | Data loading | polars (lazy/streaming) |
-| Embeddings | sentence-transformers (BGE-small, CPU, local) |
+| Embeddings | OpenRouter API (text-embedding-3-small) |
 | Vector store | ChromaDB (embedded, local) |
 | Keyword index | rank_bm25 (in-memory) |
-| Reranker | BGE-reranker-base (cross-encoder, CPU) |
+| Reranker | LLM-based via OpenRouter (gpt-4.1-mini) |
 | LLM | OpenCode Go API (deepseek-v4-flash, OpenAI-compatible) |
 | Backend | FastAPI + SQLite (no heavy ORM) |
 | Frontend | React + Vite (SPA) |
@@ -144,7 +145,7 @@ regulatory_compliance/
 │   ├── retrieval/               # vector_store, keyword_index, reranker, hybrid_retriever
 │   ├── generation/              # llm_client, prompt_builder, citation_formatter, orchestrator
 │   ├── auth/                    # models, security, dependencies
-│   └── api/                     # main, routes_auth, routes_query, routes_ingest, schemas
+│   └── api/                     # main, routes_auth, routes_query, routes_chat, routes_topics, routes_documents, routes_admin, schemas
 ├── frontend/                    # React SPA (Vite)
 ├── prompts/system_prompt.md     # versioned system prompt
 ├── tests/                       # unit + integration + eval
@@ -160,7 +161,7 @@ regulatory_compliance/
 - **M2** ✅ Embedding + ChromaDB indexing → `.vector_store/`
 - **M3** ✅ Hybrid retrieval (vector + BM25 + RRF + cross-encoder rerank)
 - **M4** ✅ OpenCode Go API integration + prompt + citations + grounding guardrail
-- **M5** ✅ FastAPI backend (auth, /query, /health, /acts, /history, /feedback, /ingest)
+- **M5** ✅ FastAPI backend (auth, /query, /health, /acts, /history, /feedback, corpus admin)
 - **M6** ✅ React frontend (login, chat, sources, history)
 - **M7** ✅ Audit logging, grounding guardrail tests, eval suite
 - **M8** ✅ Docker Compose + Caddy + run scripts + README

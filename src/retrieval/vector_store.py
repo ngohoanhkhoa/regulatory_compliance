@@ -52,7 +52,12 @@ def _build_where(filters: dict[str, Any] | None, include_repealed: bool) -> dict
 
 
 class VectorStore:
-    def __init__(self, persist_dir: Path = config.VECTOR_STORE_DIR) -> None:
+    def __init__(
+        self,
+        persist_dir: Path = config.VECTOR_STORE_DIR,
+        *,
+        collection_name: str = "eurlex_chunks",
+    ) -> None:
         import chromadb
 
         if not persist_dir.exists():
@@ -61,7 +66,7 @@ class VectorStore:
             )
         self._client = chromadb.PersistentClient(path=str(persist_dir))
         self._coll = self._client.get_or_create_collection(
-            name="eurlex_chunks", metadata={"hnsw:space": "cosine"}
+            name=collection_name, metadata={"hnsw:space": "cosine"}
         )
 
     @property

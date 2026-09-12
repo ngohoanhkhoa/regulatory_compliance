@@ -39,11 +39,14 @@ class PromptBuilder:
         for i, c in enumerate(chunks):
             meta = c.get("metadata") or {}
             parts.append(
-                "[CHUNK {idx}] celex={celex} | act_name={act} | status={status} "
-                "| temporal_status={temp} | link={link}\n{text}".format(
+                "[CHUNK {idx}] dataset={dataset} | celex={celex} | act_name={act} "
+                "| file={file} | status={status} | temporal_status={temp} "
+                "| link={link}\n{text}".format(
                     idx=i,
+                    dataset=meta.get("dataset_name", ""),
                     celex=meta.get("celex", ""),
                     act=meta.get("act_name", ""),
+                    file=meta.get("filename", ""),
                     status=meta.get("status", ""),
                     temp=meta.get("temporal_status", ""),
                     link=meta.get("eurlex_link", ""),

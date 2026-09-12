@@ -1,7 +1,7 @@
 """M2: embed the M1 chunk parquet and upsert into a local ChromaDB store (§5.2).
 
-- Embeddings run entirely on the local CPU via `sentence-transformers`
-  (default model `BAAI/bge-small-en-v1.5` — fast, small, CPU-friendly).
+- Embeddings run via the OpenRouter API (default model
+  ``openai/text-embedding-3-small``).
 - The corpus is batch-embedded once during ingestion; at query time only the
   live user question is embedded (§5.2).
 - The vector store is ChromaDB in embedded/local mode, persisted under
@@ -16,9 +16,6 @@ Run::
 
     uv run python -m src.ingestion.embed_and_index
     uv run python -m src.ingestion.embed_and_index --limit 2000   # smoke test
-
-The embedder is loaded once and reused across batches; the heaviest cost is
-the first-time model download (~130MB for bge-small).
 """
 
 from __future__ import annotations
@@ -33,6 +30,7 @@ import polars as pl
 from tqdm.auto import tqdm
 
 from src import config
+from src.ingestion.openrouter_embedder import get_openrouter_embedder
 
 # Chroma metadata values must be primitives (str/int/float/bool/None).
 # Everything here is already string-typed from M1; just normalise None.
@@ -57,18 +55,8 @@ class Embedder(Protocol):
     def encode(self, texts: list[str], **kwargs: Any) -> Any: ...
 
 
-class _SentenceTransformersEmbedder:
-    def __init__(self, model_name: str = config.EMBEDDING_MODEL) -> None:
-        from sentence_transformers import SentenceTransformer
-
-        self.model = SentenceTransformer(model_name)
-
-    def encode(self, texts: list[str], **kwargs: Any) -> Any:
-        return self.model.encode(texts, **kwargs)
-
-
-def get_embedder(model_name: str = config.EMBEDDING_MODEL) -> Embedder:
-    return _SentenceTransformersEmbedder(model_name)
+def get_embedder() -> Embedder:
+    return get_openrouter_embedder()
 
 
 class _VectorStore:
@@ -156,8 +144,10 @@ def embed_index(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="M2: embed chunks and index into ChromaDB")
     ap.add_argument("--limit", type=int, default=None, help="cap number of chunks (smoke test)")
+    ap.add_argument("--use-openrouter", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
-    stats = embed_index(limit=args.limit)
+    embedder = get_embedder()
+    stats = embed_index(limit=args.limit, embedder=embedder)
     print(
         "embedded: "
         f"seen={stats.chunks_seen} upserted={stats.chunks_upserted} "

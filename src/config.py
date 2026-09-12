@@ -56,6 +56,29 @@ INGESTION_LOG_PATH: Path = Path(
 VECTOR_STORE_DIR: Path = ROOT_DIR / ".vector_store"
 
 # --------------------------------------------------------------------------- #
+# User document library (personal documents, per user)
+# --------------------------------------------------------------------------- #
+# Uploaded source files are kept on disk (under the mounted data dir) and their
+# chunks live in a separate Chroma collection so they never mix with the
+# regulatory corpus.
+UPLOAD_DIR: Path = Path(os.getenv("UPLOAD_DIR", str(DATA_DIR / "uploads")))
+USER_DOCS_COLLECTION: str = os.getenv("USER_DOCS_COLLECTION", "user_documents")
+MAX_UPLOAD_MB: int = int(os.getenv("MAX_UPLOAD_MB", "20"))
+
+# --------------------------------------------------------------------------- #
+# Datasets (unified registry: private documents + regulatory text collections)
+# --------------------------------------------------------------------------- #
+# Imported regulatory datasets are stored under this dir (one folder per slug);
+# the built-in EURLEX dataset keeps using its existing processed parquet.
+DATASETS_DIR: Path = Path(os.getenv("DATASETS_DIR", str(DATA_DIR / "datasets")))
+DATASET_BUNDLE_VERSION: int = int(os.getenv("DATASET_BUNDLE_VERSION", "1"))
+# Registry slug of the built-in regulatory dataset backed by the CEPS corpus.
+EURLEX_DATASET_SLUG: str = os.getenv("EURLEX_DATASET_SLUG", "eurlex")
+# Cap chunk size for user documents (matches the regulatory chunker's ceiling).
+USER_DOC_MAX_TOKENS: int = int(os.getenv("USER_DOC_MAX_TOKENS", "800"))
+USER_DOC_OVERLAP_RATIO: float = float(os.getenv("USER_DOC_OVERLAP_RATIO", "0.15"))
+
+# --------------------------------------------------------------------------- #
 # Dataset
 # --------------------------------------------------------------------------- #
 # The CEPS EurLex export is frozen at August 2019 — surfaced to users in every
@@ -139,8 +162,23 @@ CHUNK_METADATA_COLUMNS: tuple[str, ...] = (
 # --------------------------------------------------------------------------- #
 DEFAULT_TOP_K: int = int(os.getenv("DEFAULT_TOP_K", "7"))
 RERANK_CANDIDATE_K: int = int(os.getenv("RERANK_CANDIDATE_K", "25"))
-EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "BAAI/bge-small-en-v1.5")
-RERANKER_MODEL: str = os.getenv("RERANKER_MODEL", "BAAI/bge-reranker-base")
+RERANKER_LLM_MODEL: str = os.getenv("RERANKER_LLM_MODEL", "openai/gpt-4.1-mini")
+
+# Topics timeline: number of relevant chunks to retrieve before de-duplicating
+# to one entry per act. Larger = richer timeline, slightly slower/costlier.
+TOPIC_TIMELINE_K: int = int(os.getenv("TOPIC_TIMELINE_K", "25"))
+
+# --------------------------------------------------------------------------- #
+# OpenRouter embeddings (M2 — remote embedder)
+# --------------------------------------------------------------------------- #
+OPENROUTER_API_KEY: str | None = os.getenv("OPENROUTER_API_KEY") or None
+OPENROUTER_EMBEDDING_MODEL: str = os.getenv(
+    "OPENROUTER_EMBEDDING_MODEL", "openai/text-embedding-3-small"
+)
+OPENROUTER_BASE_URL: str = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_EMBED_BATCH_SIZE: int = int(os.getenv("OPENROUTER_EMBED_BATCH_SIZE", "100"))
+OPENROUTER_EMBED_TIMEOUT_SEC: float = float(os.getenv("OPENROUTER_EMBED_TIMEOUT_SEC", "60.0"))
+OPENROUTER_EMBED_MAX_RETRIES: int = int(os.getenv("OPENROUTER_EMBED_MAX_RETRIES", "3"))
 
 # --------------------------------------------------------------------------- #
 # Generation (OpenCode Go API) — §5.2
@@ -151,9 +189,16 @@ OPENCODE_GO_API_KEY: str | None = os.getenv("OPENCODE_GO_API_KEY") or None
 OPENCODE_GO_BASE_URL: str = os.getenv(
     "OPENCODE_GO_BASE_URL", "https://opencode.ai/zen/go/v1"
 )
-OPENCODE_GO_MODEL: str = os.getenv("OPENCODE_GO_MODEL", "deepseek-v4-flash")
+OPENCODE_GO_MODEL: str = os.getenv("OPENCODE_GO_MODEL", "deepseek-v4-pro")
 OPENCODE_GO_MAX_TOKENS: int = int(os.getenv("OPENCODE_GO_MAX_TOKENS", "8192"))
 OPENCODE_GO_TEMPERATURE: float = float(os.getenv("OPENCODE_GO_TEMPERATURE", "0.0"))
+# OpenCode Go requires clients to identify themselves and send a stable session
+# id so requests can be routed and prompt-cached (see
+# https://opencode.ai/docs/go/#where-can-i-use-it). Missing x-opencode-session
+# is rejected with HTTP 400.
+OPENCODE_GO_USER_AGENT: str = os.getenv(
+    "OPENCODE_GO_USER_AGENT", "regulatory-compliance-rag/0.1"
+)
 # Retry/backoff for the 5-hour rolling rate limit (§5.2).
 OPENCODE_GO_MAX_RETRIES: int = int(os.getenv("OPENCODE_GO_MAX_RETRIES", "3"))
 OPENCODE_GO_TIMEOUT_SEC: float = float(os.getenv("OPENCODE_GO_TIMEOUT_SEC", "120.0"))
@@ -180,8 +225,8 @@ def as_dict() -> dict[str, Any]:
         "chunk_overlap_ratio": CHUNK_OVERLAP_RATIO,
         "min_raw_text_chars": MIN_RAW_TEXT_CHARS,
         "csv_load_batch_size": CSV_LOAD_BATCH_SIZE,
-        "embedding_model": EMBEDDING_MODEL,
-        "reranker_model": RERANKER_MODEL,
+        "embedding_model": OPENROUTER_EMBEDDING_MODEL,
+        "reranker_model": RERANKER_LLM_MODEL,
         "default_top_k": DEFAULT_TOP_K,
         "opencode_go_model": OPENCODE_GO_MODEL,
         "has_api_key": bool(OPENCODE_GO_API_KEY),

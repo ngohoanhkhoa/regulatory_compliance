@@ -88,19 +88,36 @@ def _normalise_context_celex(celex: str) -> str:
     return _normalise(year, m.group(2), m.group(3))
 
 
+def _dataset_id(meta: dict) -> int | None:
+    raw = meta.get("dataset_id")
+    try:
+        return int(raw) if raw not in (None, "") else None
+    except (TypeError, ValueError):
+        return None
+
+
 def build_sources(retrieved_chunks: list[dict]) -> list[dict]:
     """Build the de-duplicated source list for the /query response (§8).
 
-    Order = first appearance in ``retrieved_chunks`` (i.e. by rerank order).
+    Regulatory chunks are de-duplicated by CELEX; document chunks by
+    (dataset, filename). Order = first appearance (rerank order).
     """
     out: list[dict] = []
     seen: set[str] = set()
     for c in retrieved_chunks:
         meta = c.get("metadata") or {}
         celex = str(meta.get("celex") or "").strip()
-        if not celex or celex in seen:
+        filename = str(meta.get("filename") or "").strip()
+        dataset_id = _dataset_id(meta)
+        if celex:
+            key = f"celex:{celex}"
+        elif filename:
+            key = f"doc:{dataset_id}:{filename}"
+        else:
             continue
-        seen.add(celex)
+        if key in seen:
+            continue
+        seen.add(key)
         out.append(
             {
                 "celex": celex,
@@ -108,6 +125,9 @@ def build_sources(retrieved_chunks: list[dict]) -> list[dict]:
                 "status": meta.get("status", ""),
                 "link": meta.get("eurlex_link", ""),
                 "chunk_excerpt": (c.get("text") or "")[:240],
+                "dataset_id": dataset_id,
+                "dataset_name": str(meta.get("dataset_name") or ""),
+                "filename": filename,
             }
         )
     return out

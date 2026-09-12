@@ -40,6 +40,8 @@ def query(
         top_k=req.top_k or config.DEFAULT_TOP_K,
         filters=filters,
         include_repealed=req.include_repealed,
+        session_id=f"regcom-user-{user['id']}",
+        dataset_ids=req.dataset_ids,
     )
     # --- audit log (§9.3) ---------------------------------------------------
     conn = models.get_db()
@@ -115,6 +117,21 @@ def history(
         return models.get_history(conn, user["id"], limit=limit)
     finally:
         conn.close()
+
+
+@router.delete("/history/{query_log_id}", status_code=status.HTTP_200_OK)
+def delete_history(
+    query_log_id: int,
+    user: dict = Depends(get_current_user),
+):
+    conn = models.get_db()
+    try:
+        deleted = models.delete_query_log(conn, user["id"], query_log_id)
+    finally:
+        conn.close()
+    if not deleted:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Query log entry not found")
+    return {"id": query_log_id, "status": "deleted"}
 
 
 @router.post("/feedback", status_code=status.HTTP_201_CREATED)

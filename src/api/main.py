@@ -14,14 +14,33 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src import config
-from src.api import routes_auth, routes_ingest, routes_query
+from src.api import (
+    routes_auth,
+    routes_chat,
+    routes_datasets,
+    routes_documents,
+    routes_query,
+    routes_topics,
+)
 from src.api.schemas import HealthResponse
+from src.auth import models
 
 app = FastAPI(
     title="EU Regulatory Compliance RAG Chatbot",
     version="0.1.0",
     description="Citable answers about EU legal obligations (CEPS EurLex, frozen Aug 2019).",
 )
+
+
+@app.on_event("startup")
+def _bootstrap() -> None:
+    """Ensure the default admin and the built-in regulatory dataset exist."""
+    conn = models.get_db()
+    try:
+        models.ensure_default_admin(conn, username="admin", password="0000")
+        models.ensure_system_datasets(conn)
+    finally:
+        conn.close()
 
 # CORS: allow the frontend (M6) to call the API during development. Tighten in
 # production via the env var.
@@ -95,7 +114,10 @@ def health() -> HealthResponse:
 
 app.include_router(routes_auth.router)
 app.include_router(routes_query.router)
-app.include_router(routes_ingest.router)
+app.include_router(routes_chat.router)
+app.include_router(routes_topics.router)
+app.include_router(routes_documents.router)
+app.include_router(routes_datasets.router)
 
 
 @app.get("/", tags=["root"])

@@ -15,4 +15,5 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 1
 fi
 
+unset VIRTUAL_ENV
 exec uv run uvicorn src.api.main:app --host 0.0.0.0 --port 8000 "$@"

@@ -3,7 +3,7 @@
 Pipeline per query::
 
     question
-      ├── embed (live, local) → VectorStore.query → vector hits
+      ├── embed (live, OpenRouter) → VectorStore.query → vector hits
       └── tokenize            → KeywordIndex.query → bm25 hits
                 fused by reciprocal rank fusion (RRF)
                   → cross-encoder rerank (top RERANK_CANDIDATE_K → top DEFAULT_TOP_K)
@@ -40,19 +40,19 @@ class QuestionEmbedder(Protocol):
     def embed(self, text: str) -> list[float]: ...
 
 
-class _STQuestionEmbedder:
-    def __init__(self, model_name: str = config.EMBEDDING_MODEL) -> None:
-        from sentence_transformers import SentenceTransformer
+class _OpenRouterQuestionEmbedder:
+    def __init__(self) -> None:
+        from src.ingestion.openrouter_embedder import get_openrouter_embedder
 
-        self._m = SentenceTransformer(model_name)
+        self._client = get_openrouter_embedder()
 
     def embed(self, text: str) -> list[float]:
-        v = self._m.encode([text], show_progress_bar=False, convert_to_numpy=True)
-        return v[0].tolist()
+        arr = self._client.encode([text])
+        return arr[0].tolist()
 
 
-def get_question_embedder(model_name: str = config.EMBEDDING_MODEL) -> QuestionEmbedder:
-    return _STQuestionEmbedder(model_name)
+def get_question_embedder() -> QuestionEmbedder:
+    return _OpenRouterQuestionEmbedder()
 
 
 def reciprocal_rank_fuse(
@@ -114,6 +114,32 @@ class HybridResult:
     candidates: list[FusedCandidate]  # pre-rerank fused pool (for auditing)
 
 
+def fuse_and_rerank(
+    question: str,
+    ranked_lists: list[list[dict[str, Any]]],
+    *,
+    reranker: Any = None,
+    n_candidates: int = config.RERANK_CANDIDATE_K,
+    top_k: int = config.DEFAULT_TOP_K,
+) -> list[dict[str, Any]]:
+    """RRF-fuse any number of ranked hit lists, then rerank to top-k dicts."""
+    from src.retrieval import reranker as rr
+
+    fused = reciprocal_rank_fuse(ranked_lists)
+    fused_capped = fused[:n_candidates]
+    candidate_dicts = [
+        {
+            "chunk_id": c.chunk_id,
+            "text": c.text,
+            "metadata": c.metadata,
+            "score": c.score,
+        }
+        for c in fused_capped
+    ]
+    ranked = rr.rerank(question, candidate_dicts, reranker=reranker, top_k=top_k)
+    return [h.as_dict() for h in ranked]
+
+
 def retrieve(
     question: str,
     *,
@@ -132,8 +158,6 @@ def retrieve(
     into the `/query` response schema (§8). Each dict has:
     chunk_id, score (fused), rerank_score, text, metadata.
     """
-    from src.retrieval import reranker as rr
-
     if question_embedder is None:
         question_embedder = get_question_embedder()
     if vector_store is None:
@@ -159,22 +183,13 @@ def retrieve(
         include_repealed=include_repealed,
     )
 
-    fused = reciprocal_rank_fuse(
+    return fuse_and_rerank(
+        question,
         [
             [_vec_to_dict(h, "vector") for h in vec_hits],
             [_vec_to_dict(h, "bm25") for h in kw_hits],
-        ]
+        ],
+        reranker=reranker,
+        n_candidates=n_candidates,
+        top_k=top_k,
     )
-    fused_capped = fused[:n_candidates]
-
-    candidate_dicts = [
-        {
-            "chunk_id": c.chunk_id,
-            "text": c.text,
-            "metadata": c.metadata,
-            "score": c.score,
-        }
-        for c in fused_capped
-    ]
-    ranked = rr.rerank(question, candidate_dicts, reranker=reranker, top_k=top_k)
-    return [h.as_dict() for h in ranked]
