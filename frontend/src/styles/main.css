@@ -2039,13 +2039,27 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: var(--surface2);
 }
 
+/* Grid cells must be allowed to shrink below their content width, otherwise a
+   long value (e.g. an act title) expands the track and overlaps neighbours. */
+.data-table-head > *,
+.data-table-row > span {
+  min-width: 0;
+}
+
 .data-celex {
+  display: block;
   font-family: "SF Mono", Monaco, monospace;
   font-size: 0.75rem;
   color: var(--accent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .data-act-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
