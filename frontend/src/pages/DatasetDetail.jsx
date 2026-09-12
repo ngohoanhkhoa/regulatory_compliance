@@ -90,6 +90,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
   const [sort, setSort] = useState("date");
   const [order, setOrder] = useState("desc");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmName, setConfirmName] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -194,11 +195,19 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
     }
   };
 
+  const openDelete = () => {
+    setConfirmName("");
+    setConfirmOpen(true);
+  };
+
+  const nameMatches = confirmName.trim() === dataset.name.trim();
+
   const doDelete = async () => {
+    if (!nameMatches) return;
     setDeleting(true);
     try {
       await api.deleteDataset(dataset.id);
-      onDeleted();
+      onDeleted(dataset.name);
     } catch (err) {
       setError(err.message || "Failed to remove dataset");
       setDeleting(false);
@@ -241,11 +250,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             Export bundle
           </Button>
           {isAdmin && (
-            <Button
-              variant="danger"
-              icon={Trash2}
-              onClick={() => setConfirmOpen(true)}
-            >
+            <Button variant="danger" icon={Trash2} onClick={openDelete}>
               Remove dataset
             </Button>
           )}
@@ -415,19 +420,52 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
         onClose={() => setConfirmOpen(false)}
         title="Remove regulatory dataset"
       >
-        <p className="modal-confirm-text">
-          Remove <strong>{dataset.name}</strong>? This deletes its chunks and
-          vectors from this instance. You can re-add it later by importing the
-          dataset bundle.
-        </p>
+        <div className="danger-notice">
+          <AlertTriangle className="w-5 h-5" />
+          <div>
+            <strong>This permanently removes “{dataset.name}”.</strong>
+            <ul>
+              <li>
+                Deletes {dataset.chunks.toLocaleString()} chunks and{" "}
+                {dataset.vectors != null ? dataset.vectors.toLocaleString() : "all"}{" "}
+                vectors from this instance.
+              </li>
+              <li>Users will no longer be able to chat with this dataset.</li>
+              <li>
+                This action cannot be undone. Re-add it later by importing the
+                dataset bundle.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <label className="confirm-type">
+          <span>
+            Type <strong>{dataset.name}</strong> to confirm:
+          </span>
+          <input
+            type="text"
+            value={confirmName}
+            onChange={(e) => setConfirmName(e.target.value)}
+            placeholder={dataset.name}
+            autoFocus
+            disabled={deleting}
+          />
+        </label>
+
         <div className="topic-form-actions">
-          <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
+          <Button
+            variant="ghost"
+            onClick={() => setConfirmOpen(false)}
+            disabled={deleting}
+          >
             Cancel
           </Button>
           <Button
             variant="danger"
             icon={Trash2}
             isLoading={deleting}
+            disabled={!nameMatches}
             onClick={doDelete}
           >
             Remove dataset
@@ -598,7 +636,11 @@ export default function DatasetDetail() {
         <RegulatoryPanel
           dataset={dataset}
           isAdmin={isAdmin}
-          onDeleted={() => navigate("/datasets")}
+          onDeleted={(name) =>
+            navigate("/datasets", {
+              state: { notice: `Removed dataset “${name}”.` },
+            })
+          }
         />
       )}
     </div>

@@ -2483,6 +2483,70 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 8px 0 16px;
 }
 
+.danger-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--bad);
+  background: var(--bad-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.danger-notice > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--bad);
+}
+
+.danger-notice strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--bad);
+}
+
+.danger-notice ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-dim);
+}
+
+.danger-notice li {
+  margin: 2px 0;
+}
+
+.confirm-type {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.confirm-type strong {
+  color: var(--text);
+}
+
+.confirm-type input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.confirm-type input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
 .export-option {
   display: flex;
   align-items: flex-start;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import * as api from "../api/client";
 import { useAuth } from "../api/AuthContext";
 import Card from "../components/ui/Card";
@@ -26,6 +26,7 @@ function kindMeta(kind) {
 export default function Datasets() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
@@ -48,6 +49,16 @@ export default function Datasets() {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
+
+  // Show a one-off notice handed over from a dataset deletion, then clear it so
+  // it doesn't reappear on refresh/back.
+  useEffect(() => {
+    const notice = location.state?.notice;
+    if (!notice) return;
+    showToast(notice);
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   const onImport = async (e) => {
     const file = e.target.files?.[0];
