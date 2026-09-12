@@ -2,7 +2,13 @@
     handle /auth/* {
         reverse_proxy backend:8000
     }
-    handle /chat {
+    # Only POST /chat is the API; a GET (SPA route or page reload) must serve the
+    # frontend, otherwise direct-loading /chat returns a backend 405.
+    @chat_post {
+        method POST
+        path /chat
+    }
+    handle @chat_post {
         reverse_proxy backend:8000
     }
     handle /query {

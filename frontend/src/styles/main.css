@@ -335,6 +335,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 1rem;
 }
 
+.field-hint {
+  margin: -0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .login-card .cutoff-notice {
   margin-top: 1.5rem;
   padding: 0.875rem;

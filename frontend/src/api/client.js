@@ -4,6 +4,26 @@ function getToken() {
   return localStorage.getItem("token") || "";
 }
 
+// FastAPI returns `detail` as a string for HTTPException, but as a list of
+// validation objects for 422s. Normalise both into a readable message instead
+// of letting objects stringify to "[object Object]".
+export function formatError(detail, fallback = "Request failed") {
+  if (detail == null || detail === "") return fallback;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const parts = detail.map((e) => {
+      const loc = Array.isArray(e?.loc)
+        ? e.loc.filter((p) => p !== "body").join(".")
+        : "";
+      const msg = e?.msg || (typeof e === "string" ? e : JSON.stringify(e));
+      return loc ? `${loc}: ${msg}` : msg;
+    });
+    return parts.join("; ") || fallback;
+  }
+  if (typeof detail === "object") return detail.msg || JSON.stringify(detail);
+  return String(detail);
+}
+
 async function request(path, opts = {}) {
   const headers = { ...(opts.headers || {}) };
   if (opts.body && typeof opts.body === "object" && !(opts.body instanceof FormData)) {
@@ -20,7 +40,7 @@ async function request(path, opts = {}) {
     } catch {
       detail = { detail: res.statusText };
     }
-    const err = new Error(detail.detail || `HTTP ${res.status}`);
+    const err = new Error(formatError(detail.detail, `HTTP ${res.status}`));
     err.status = res.status;
     err.body = detail;
     throw err;
@@ -46,8 +66,13 @@ export async function login(username, password) {
     body: form,
   });
   if (!res.ok) {
-    const d = await res.json();
-    throw new Error(d.detail || "Login failed");
+    let d = {};
+    try {
+      d = await res.json();
+    } catch {
+      /* non-JSON error */
+    }
+    throw new Error(formatError(d.detail, "Login failed"));
   }
   const { access_token } = await res.json();
   localStorage.setItem("token", access_token);

@@ -60,7 +60,12 @@ export default function Login() {
           </button>
           <button
             className={mode === "register" ? "active" : ""}
-            onClick={() => { setMode("register"); setError(""); }}
+            onClick={() => {
+              setMode("register");
+              setError("");
+              if (username === "admin") setUsername("");
+              setPassword("");
+            }}
           >
             <BookOpen className="w-4 h-4 inline mr-1" />
             Register
@@ -83,8 +88,14 @@ export default function Login() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            minLength={mode === "register" ? 8 : undefined}
             required
           />
+          {mode === "register" && (
+            <p className="field-hint">
+              Username ≥ 3 characters, password ≥ 8 characters.
+            </p>
+          )}
 
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-[var(--bad-muted)] border border-[var(--bad)] text-[var(--bad)] text-sm">
