@@ -544,6 +544,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .chat-input-wrapper {
+  position: relative;
   padding: 16px 32px;
   border-top: 1px solid var(--border);
   background: var(--surface);
@@ -2812,20 +2813,101 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--accent);
 }
 
-.document-selector {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 4px;
-}
-
-.document-chips {
+/* --- @-mentions --- */
+.mention-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  flex: 1;
-  max-height: 76px;
+  padding: 4px;
+}
+
+.mention-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  padding: 4px 6px 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-muted);
+  color: var(--accent);
+}
+
+.mention-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--accent);
+  background: transparent;
+}
+
+.mention-chip-remove:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mention-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 6px;
+  max-height: 260px;
   overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
+  z-index: 40;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.mention-item:hover,
+.mention-item.active {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.mention-item-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention-item-sub {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
 
 .document-tags-input {

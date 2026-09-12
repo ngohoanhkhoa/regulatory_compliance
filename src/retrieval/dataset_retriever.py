@@ -16,6 +16,26 @@ from src.auth import models
 from src.datasets import registry
 
 _keyword_cache: dict[str, Any] = {}
+_celex_support_cache: dict[str, bool] = {}
+
+
+def _supports_celex(dataset: dict[str, Any]) -> bool:
+    """Whether a regulatory dataset's chunks carry a ``celex`` metadata field."""
+    path = registry.chunks_path_of(dataset)
+    if not path or not path.exists():
+        return False
+    key = str(path)
+    if key in _celex_support_cache:
+        return _celex_support_cache[key]
+    try:
+        import polars as pl
+
+        cols = {c.lower() for c in pl.scan_parquet(path).collect_schema().names()}
+        ok = "celex" in cols
+    except Exception:
+        ok = False
+    _celex_support_cache[key] = ok
+    return ok
 
 
 def _keyword_index(path: Path):
@@ -69,10 +89,20 @@ def _ranked_lists_for_dataset(
     filters: dict[str, Any] | None,
     include_repealed: bool,
     document_ids: list[int] | None = None,
+    celex_ids: list[str] | None = None,
 ) -> list[list[dict[str, Any]]]:
     lists: list[list[dict[str, Any]]] = []
     collection = registry.collection_of(dataset)
     kind = dataset.get("kind")
+
+    # Regulatory item scope: filter to explicitly @-mentioned acts. Named acts
+    # are always included even if repealed (skip the In Force default).
+    reg_filters = dict(filters or {})
+    reg_include_repealed = include_repealed
+    if kind == "regulatory" and celex_ids:
+        if _supports_celex(dataset):
+            reg_filters["celex"] = {"$in": [str(c) for c in celex_ids]}
+            reg_include_repealed = True
 
     if collection:
         from src.retrieval.vector_store import VectorStore
@@ -93,8 +123,8 @@ def _ranked_lists_for_dataset(
                 hits = store.query(
                     question_embedding,
                     n_results=n_candidates,
-                    filters=filters,
-                    include_repealed=include_repealed,
+                    filters=reg_filters or None,
+                    include_repealed=reg_include_repealed,
                 )
             lists.append(
                 [
@@ -115,8 +145,8 @@ def _ranked_lists_for_dataset(
             kw_hits = idx.query(
                 question,
                 n_results=n_candidates,
-                filters=filters,
-                include_repealed=include_repealed,
+                filters=reg_filters or None,
+                include_repealed=reg_include_repealed,
             )
         except FileNotFoundError:
             kw_hits = []
@@ -146,6 +176,7 @@ def retrieve(
     filters: dict[str, Any] | None = None,
     include_repealed: bool = False,
     document_ids: list[int] | None = None,
+    celex_ids: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Retrieve across the given datasets and return the top-k reranked chunks."""
     conn = models.get_db()
@@ -174,6 +205,7 @@ def retrieve(
                 filters=filters,
                 include_repealed=include_repealed,
                 document_ids=document_ids,
+                celex_ids=celex_ids,
             )
         )
     if not all_lists:

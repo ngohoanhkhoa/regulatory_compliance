@@ -132,3 +132,44 @@ def test_retrieve_passes_document_filter(env, monkeypatch):
             {"document_id": {"$in": [3, 4]}},
         ]
     }
+
+
+def test_retrieve_passes_celex_filter_for_regulatory(env, monkeypatch):
+    captured = {}
+
+    class CapturingStore(FakeVectorStore):
+        def query(self, embedding, *, n_results=10, filters=None, include_repealed=False):
+            captured["filters"] = filters
+            captured["include_repealed"] = include_repealed
+            return []
+
+    monkeypatch.setattr("src.retrieval.vector_store.VectorStore", CapturingStore)
+    monkeypatch.setattr(dataset_retriever, "_supports_celex", lambda d: True)
+    dataset_retriever.retrieve(
+        "q",
+        [env["reg"]],
+        question_embedder=FakeEmbedder(),
+        celex_ids=["32016R0679"],
+    )
+    assert captured["filters"] == {"celex": {"$in": ["32016R0679"]}}
+    # A named act is included even if repealed.
+    assert captured["include_repealed"] is True
+
+
+def test_retrieve_ignores_celex_when_unsupported(env, monkeypatch):
+    captured = {}
+
+    class CapturingStore(FakeVectorStore):
+        def query(self, embedding, *, n_results=10, filters=None, include_repealed=False):
+            captured["filters"] = filters
+            return []
+
+    monkeypatch.setattr("src.retrieval.vector_store.VectorStore", CapturingStore)
+    monkeypatch.setattr(dataset_retriever, "_supports_celex", lambda d: False)
+    dataset_retriever.retrieve(
+        "q",
+        [env["reg"]],
+        question_embedder=FakeEmbedder(),
+        celex_ids=["32016R0679"],
+    )
+    assert not captured["filters"] or "celex" not in captured["filters"]

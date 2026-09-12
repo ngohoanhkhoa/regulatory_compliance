@@ -132,10 +132,16 @@ class KeywordIndex:
 
 
 def _passes(meta: dict[str, Any], filters: dict[str, Any]) -> bool:
-    for k, v in filters.items():
-        if v is None:
-            if meta.get(k) not in (None, ""):
+    for key, expected in filters.items():
+        value = meta.get(key)
+        if isinstance(expected, dict):
+            if "$in" in expected and value not in expected["$in"]:
                 return False
-        elif meta.get(k) != v:
+            if "$ne" in expected and value == expected["$ne"]:
+                return False
+        elif expected is None:
+            if value not in (None, ""):
+                return False
+        elif value != expected:
             return False
     return True

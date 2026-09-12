@@ -134,6 +134,7 @@ def _mock_orchestrator(monkeypatch, answer="Mock answer about 32016R0679.", grou
         session_id=None,
         dataset_ids=None,
         document_ids=None,
+        celex_ids=None,
     ):
         return {
             "answer": answer,
@@ -195,6 +196,7 @@ def test_query_with_filters_and_top_k(client, admin_token, monkeypatch):
         session_id=None,
         dataset_ids=None,
         document_ids=None,
+        celex_ids=None,
     ):
         captured["top_k"] = top_k
         captured["filters"] = filters
@@ -309,9 +311,11 @@ def test_chat_forwards_document_ids(client, admin_token, monkeypatch):
             "question": "What obligations are in my contract?",
             "dataset_ids": [2],
             "document_ids": [5, 6],
+            "celex_ids": ["32016R0679"],
         },
         headers=auth_headers(admin_token),
     )
     assert r.status_code == 200
     assert captured.get("dataset_ids") == [2]
     assert captured.get("document_ids") == [5, 6]
+    assert captured.get("celex_ids") == ["32016R0679"]

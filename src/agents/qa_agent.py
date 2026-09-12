@@ -18,6 +18,7 @@ class QAAgent:
             top_k=kwargs.get("top_k"),
             dataset_ids=kwargs.get("dataset_ids"),
             document_ids=kwargs.get("document_ids"),
+            celex_ids=kwargs.get("celex_ids"),
         )
         filters = req.filters.model_dump(exclude_none=True) if req.filters else None
         result = orchestrator.answer_question(
@@ -28,6 +29,7 @@ class QAAgent:
             session_id=kwargs.get("session_id"),
             dataset_ids=req.dataset_ids,
             document_ids=req.document_ids,
+            celex_ids=req.celex_ids,
         )
         if result is None:
             return {

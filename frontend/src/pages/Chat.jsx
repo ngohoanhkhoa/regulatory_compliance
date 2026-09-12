@@ -249,13 +249,10 @@ export default function Chat() {
     }
   });
   const [documents, setDocuments] = useState([]);
-  const [selectedDocumentIds, setSelectedDocumentIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("chatDocumentIds") || "[]");
-    } catch {
-      return [];
-    }
-  });
+  const [mentions, setMentions] = useState([]);
+  const [mentionQuery, setMentionQuery] = useState(null);
+  const [mentionResults, setMentionResults] = useState([]);
+  const [mentionIndex, setMentionIndex] = useState(0);
   const endRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -295,36 +292,73 @@ export default function Chat() {
     );
 
   const docsDataset = datasets.find((d) => d.kind === "documents");
-  const docsSelected = !!(
-    docsDataset && selectedDatasetIds.includes(docsDataset.id)
+
+  // Load the user's documents once so the @-mention picker can search them.
+  useEffect(() => {
+    api.getDocuments().then(setDocuments).catch(() => {});
+  }, []);
+
+  const runMentionSearch = useCallback(
+    async (q) => {
+      const lower = q.toLowerCase();
+      const out = documents
+        .filter((d) => d.filename.toLowerCase().includes(lower))
+        .slice(0, 6)
+        .map((d) => ({
+          key: `d:${d.id}`,
+          kind: "documents",
+          datasetId: docsDataset?.id,
+          ref: d.id,
+          label: d.filename,
+          sub: "My Documents",
+        }));
+
+      if (q.trim().length >= 2) {
+        const regs = datasets.filter((d) => d.kind === "regulatory");
+        for (const ds of regs) {
+          try {
+            const res = await api.getDatasetActs(ds.id, { query: q, limit: 6 });
+            (res.items || []).forEach((it) => {
+              out.push({
+                key: `r:${ds.id}:${it.id}`,
+                kind: "regulatory",
+                datasetId: ds.id,
+                ref: it.id,
+                label: it.title || it.id,
+                sub: `${it.id} · ${ds.name}`,
+              });
+            });
+          } catch {
+            /* ignore dataset search errors */
+          }
+        }
+      }
+      setMentionResults(out);
+    },
+    [documents, datasets, docsDataset]
   );
 
-  const toggleDocument = (id) =>
-    setSelectedDocumentIds((cur) =>
-      cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]
-    );
-
-  // Load the user's documents when the documents dataset is selected, and drop
-  // any selected ids that no longer exist (deleted files).
   useEffect(() => {
-    if (!docsSelected) return;
-    api
-      .getDocuments()
-      .then((docs) => {
-        setDocuments(docs);
-        setSelectedDocumentIds((cur) =>
-          cur.filter((id) => docs.some((d) => d.id === id))
-        );
-      })
-      .catch(() => {});
-  }, [docsSelected]);
+    if (mentionQuery === null) {
+      setMentionResults([]);
+      return;
+    }
+    const t = setTimeout(() => runMentionSearch(mentionQuery), 180);
+    return () => clearTimeout(t);
+  }, [mentionQuery, runMentionSearch]);
 
-  useEffect(() => {
-    localStorage.setItem(
-      "chatDocumentIds",
-      JSON.stringify(selectedDocumentIds)
+  const removeMention = (key) =>
+    setMentions((cur) => cur.filter((m) => m.key !== key));
+
+  const selectMention = (m) => {
+    setMentions((cur) => (cur.some((x) => x.key === m.key) ? cur : [...cur, m]));
+    setInput((cur) =>
+      cur.replace(/(?:^|\s)@([^\s@]*)$/, (s) => (s.startsWith(" ") ? " " : ""))
     );
-  }, [selectedDocumentIds]);
+    setMentionQuery(null);
+    setMentionResults([]);
+    inputRef.current?.focus();
+  };
 
   const ask = async (e) => {
     e.preventDefault();
@@ -336,24 +370,45 @@ export default function Chat() {
     setMessages((m) => [...m, optimistic]);
     try {
       const { includeRepealed } = getSettings();
-      // Default (all regulatory datasets) keeps the legacy explore behavior;
-      // an explicit narrowing sends the selection so retrieval is scoped.
-      const regSorted = datasets
-        .filter((d) => d.kind === "regulatory")
-        .map((d) => d.id)
-        .sort((a, b) => a - b);
-      const sel = [...selectedDatasetIds].sort((a, b) => a - b);
-      const documentIds =
-        docsSelected && selectedDocumentIds.length ? selectedDocumentIds : null;
-      const isDefault =
-        !documentIds &&
-        sel.length > 0 &&
-        sel.length === regSorted.length &&
-        sel.every((v, i) => v === regSorted[i]);
+
+      const docRefs = mentions
+        .filter((m) => m.kind === "documents")
+        .map((m) => m.ref);
+      const celexRefs = mentions
+        .filter((m) => m.kind === "regulatory")
+        .map((m) => m.ref);
+      const mentionDatasetIds = [
+        ...new Set(mentions.map((m) => m.datasetId).filter((x) => x != null)),
+      ];
+
+      let datasetIds;
+      let documentIds = null;
+      let celexIds = null;
+      if (mentions.length) {
+        // @-mentions define an explicit item scope.
+        datasetIds = mentionDatasetIds;
+        documentIds = docRefs.length ? docRefs : null;
+        celexIds = celexRefs.length ? celexRefs : null;
+      } else {
+        // Default (all regulatory datasets) keeps the legacy explore behavior;
+        // an explicit narrowing sends the selection so retrieval is scoped.
+        const regSorted = datasets
+          .filter((d) => d.kind === "regulatory")
+          .map((d) => d.id)
+          .sort((a, b) => a - b);
+        const sel = [...selectedDatasetIds].sort((a, b) => a - b);
+        const isDefault =
+          sel.length > 0 &&
+          sel.length === regSorted.length &&
+          sel.every((v, i) => v === regSorted[i]);
+        datasetIds = isDefault ? null : selectedDatasetIds;
+      }
+
       const res = await api.chat(question, {
         include_repealed: includeRepealed,
-        dataset_ids: isDefault ? null : selectedDatasetIds,
+        dataset_ids: datasetIds,
         document_ids: documentIds,
+        celex_ids: celexIds,
       });
       setMessages((m) => [
         ...m,
@@ -379,7 +434,42 @@ export default function Chat() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInput(value);
+    const m = value.match(/(?:^|\s)@([^\s@]*)$/);
+    if (m) {
+      setMentionQuery(m[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+  };
+
   const handleKeyDown = (e) => {
+    if (mentionQuery !== null && mentionResults.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex((i) => (i + 1) % mentionResults.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex(
+          (i) => (i - 1 + mentionResults.length) % mentionResults.length
+        );
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        selectMention(mentionResults[mentionIndex]);
+        return;
+      }
+      if (e.key === "Escape") {
+        setMentionQuery(null);
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       ask(e);
@@ -540,37 +630,52 @@ export default function Chat() {
               </div>
             </div>
           )}
-          {docsSelected && documents.length > 0 && (
-            <div className="document-selector">
-              <span className="dataset-selector-label">Documents</span>
-              <div className="document-chips">
-                <button
-                  type="button"
-                  className={`dataset-chip ${
-                    selectedDocumentIds.length === 0 ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedDocumentIds([])}
-                  title="Use all documents in this dataset"
-                >
-                  All
-                </button>
-                {documents.map((doc) => (
-                  <button
-                    key={doc.id}
-                    type="button"
-                    className={`dataset-chip ${
-                      selectedDocumentIds.includes(doc.id) ? "active" : ""
-                    }`}
-                    onClick={() => toggleDocument(doc.id)}
-                    title={
-                      doc.tags ? `${doc.filename} · ${doc.tags}` : doc.filename
-                    }
-                  >
+          {mentions.length > 0 && (
+            <div className="mention-chips">
+              {mentions.map((m) => (
+                <span key={m.key} className="mention-chip" title={m.sub}>
+                  {m.kind === "regulatory" ? (
+                    <Database className="w-3 h-3" />
+                  ) : (
                     <FileText className="w-3 h-3" />
-                    {doc.filename}
+                  )}
+                  <span className="mention-chip-label">{m.label}</span>
+                  <button
+                    type="button"
+                    className="mention-chip-remove"
+                    aria-label={`Remove ${m.label}`}
+                    onClick={() => removeMention(m.key)}
+                  >
+                    ×
                   </button>
-                ))}
-              </div>
+                </span>
+              ))}
+            </div>
+          )}
+          {mentionQuery !== null && mentionResults.length > 0 && (
+            <div className="mention-menu">
+              {mentionResults.map((m, i) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  className={`mention-item ${i === mentionIndex ? "active" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectMention(m);
+                  }}
+                  onMouseEnter={() => setMentionIndex(i)}
+                >
+                  <span className="mention-item-label">
+                    {m.kind === "regulatory" ? (
+                      <Database className="w-3.5 h-3.5" />
+                    ) : (
+                      <FileText className="w-3.5 h-3.5" />
+                    )}
+                    {m.label}
+                  </span>
+                  <span className="mention-item-sub">{m.sub}</span>
+                </button>
+              ))}
             </div>
           )}
           <form className="chat-input" onSubmit={ask}>
@@ -578,9 +683,9 @@ export default function Chat() {
               ref={inputRef}
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about EU regulations…"
+              placeholder="Ask a question… type @ to mention a document or act"
               disabled={busy}
             />
             <button type="submit" disabled={busy || !input.trim()}>

@@ -145,6 +145,8 @@ export async function chat(question, opts = {}) {
         opts.dataset_ids && opts.dataset_ids.length ? opts.dataset_ids : null,
       document_ids:
         opts.document_ids && opts.document_ids.length ? opts.document_ids : null,
+      celex_ids:
+        opts.celex_ids && opts.celex_ids.length ? opts.celex_ids : null,
     },
   });
 }

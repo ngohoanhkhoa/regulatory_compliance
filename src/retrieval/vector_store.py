@@ -39,16 +39,35 @@ class VectorHit:
 
 
 def _build_where(filters: dict[str, Any] | None, include_repealed: bool) -> dict[str, Any] | None:
-    where: dict[str, Any] = {}
+    """Build a Chroma ``where`` clause.
+
+    Chroma (1.x) requires exactly one top-level operator, so multiple
+    conditions are combined with ``$and``. ``filters`` values may already be
+    operator expressions (e.g. ``{"celex": {"$in": [...]}}``). The default
+    ``status = "In Force"`` is applied unless ``include_repealed`` is set (in
+    which case a caller-supplied status filter is honoured).
+    """
+    conditions: list[dict[str, Any]] = []
+    status_value: Any = None
     if filters:
-        for k, v in filters.items():
-            if v is None:
-                where[k] = {"$ne": ""} if False else {"$ne": None}
-            else:
-                where[k] = v
+        for key, value in filters.items():
+            if value is None:
+                continue
+            if key == "status":
+                status_value = value
+                continue
+            conditions.append({key: value})
+
     if not include_repealed:
-        where["status"] = "In Force"
-    return where or None
+        conditions.append({"status": "In Force"})
+    elif status_value is not None:
+        conditions.append({"status": status_value})
+
+    if not conditions:
+        return None
+    if len(conditions) == 1:
+        return conditions[0]
+    return {"$and": conditions}
 
 
 class VectorStore:
