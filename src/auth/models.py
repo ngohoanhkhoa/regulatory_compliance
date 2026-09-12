@@ -183,37 +183,68 @@ def list_users(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     return [dict(r) for r in conn.execute("SELECT * FROM users ORDER BY created_at").fetchall()]
 
 
+def count_admins(conn: sqlite3.Connection) -> int:
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM users WHERE is_admin = 1"
+    ).fetchone()
+    return int(row["n"]) if row else 0
+
+
+def update_username(conn: sqlite3.Connection, user_id: int, username: str) -> bool:
+    cur = conn.execute(
+        "UPDATE users SET username = ? WHERE id = ?", (username, user_id)
+    )
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def update_password(
+    conn: sqlite3.Connection, user_id: int, hashed_password: str
+) -> bool:
+    cur = conn.execute(
+        "UPDATE users SET hashed_password = ? WHERE id = ?",
+        (hashed_password, user_id),
+    )
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def set_admin(conn: sqlite3.Connection, user_id: int, is_admin: bool) -> bool:
+    cur = conn.execute(
+        "UPDATE users SET is_admin = ? WHERE id = ?", (int(is_admin), user_id)
+    )
+    conn.commit()
+    return cur.rowcount > 0
+
+
+def delete_user_row(conn: sqlite3.Connection, user_id: int) -> bool:
+    cur = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    return cur.rowcount > 0
+
+
 def ensure_default_admin(
     conn: sqlite3.Connection,
     username: str = "admin",
     password: str = "0000",
 ) -> dict[str, Any] | None:
-    """Create or update the default admin account.
+    """Create the default admin account only if it does not already exist.
 
-    Returns the user dict if created/updated, None if it already exists with
-    the requested credentials.
+    Never overwrites an existing account, so a password changed by an admin
+    survives restarts. Returns the created user dict, or None if it existed.
     """
     from src.auth import security
 
-    existing = get_user_by_name(conn, username)
-    hashed = security.hash_password(password)
+    if get_user_by_name(conn, username) is not None:
+        return None
 
-    if existing is None:
-        uid = create_user(
-            conn,
-            username=username,
-            hashed_password=hashed,
-            is_admin=True,
-        )
-        return get_user_by_id(conn, uid)
-
-    # Reset password and ensure admin flag for the default account.
-    conn.execute(
-        "UPDATE users SET hashed_password = ?, is_admin = 1 WHERE id = ?",
-        (hashed, existing["id"]),
+    uid = create_user(
+        conn,
+        username=username,
+        hashed_password=security.hash_password(password),
+        is_admin=True,
     )
-    conn.commit()
-    return get_user_by_id(conn, existing["id"])
+    return get_user_by_id(conn, uid)
 
 
 # --- query log --------------------------------------------------------------- #

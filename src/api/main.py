@@ -21,6 +21,7 @@ from src.api import (
     routes_documents,
     routes_query,
     routes_topics,
+    routes_users,
 )
 from src.api.schemas import HealthResponse
 from src.auth import models
@@ -118,6 +119,7 @@ app.include_router(routes_chat.router)
 app.include_router(routes_topics.router)
 app.include_router(routes_documents.router)
 app.include_router(routes_datasets.router)
+app.include_router(routes_users.router)
 
 
 @app.get("/", tags=["root"])

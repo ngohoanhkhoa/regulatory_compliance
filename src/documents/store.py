@@ -67,6 +67,10 @@ class UserDocsStore:
             }
         )
 
+    def delete_user(self, user_id: int) -> None:
+        """Remove every chunk belonging to a user (hard-delete of the user)."""
+        self._coll.delete(where={"user_id": int(user_id)})
+
     def query(
         self, embedding: list[float], user_id: int, *, n_results: int = 5
     ) -> list[DocHit]:

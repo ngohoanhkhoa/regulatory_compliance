@@ -26,6 +26,42 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class UsernameUpdate(BaseModel):
+    username: str = Field(min_length=3, max_length=40)
+
+
+class PasswordUpdate(BaseModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class AdminUserOut(BaseModel):
+    id: int
+    username: str
+    is_admin: bool
+    created_at: float | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminUserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=40)
+    password: str = Field(min_length=8, max_length=128)
+    is_admin: bool = False
+
+
+class AdminUsernameUpdate(BaseModel):
+    username: str = Field(min_length=3, max_length=40)
+
+
+class AdminPasswordReset(BaseModel):
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class AdminFlagUpdate(BaseModel):
+    is_admin: bool
+
+
 # --- query ------------------------------------------------------------------- #
 class QueryFilters(BaseModel):
     status: str | None = None

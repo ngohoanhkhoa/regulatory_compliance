@@ -83,6 +83,52 @@ export async function getMe() {
   return request("/auth/me");
 }
 
+export async function updateUsername(username) {
+  return request("/auth/me/username", { method: "PUT", body: { username } });
+}
+
+export async function updatePassword(currentPassword, newPassword) {
+  return request("/auth/me/password", {
+    method: "PUT",
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}
+
+// --- admin: user management --------------------------------------------------
+
+export async function listUsers() {
+  return request("/api/admin/users");
+}
+
+export async function createUser(payload) {
+  return request("/api/admin/users", { method: "POST", body: payload });
+}
+
+export async function adminSetUsername(userId, username) {
+  return request(`/api/admin/users/${userId}/username`, {
+    method: "PUT",
+    body: { username },
+  });
+}
+
+export async function adminSetPassword(userId, newPassword) {
+  return request(`/api/admin/users/${userId}/password`, {
+    method: "PUT",
+    body: { new_password: newPassword },
+  });
+}
+
+export async function adminSetAdmin(userId, isAdmin) {
+  return request(`/api/admin/users/${userId}/admin`, {
+    method: "PUT",
+    body: { is_admin: isAdmin },
+  });
+}
+
+export async function deleteUser(userId) {
+  return request(`/api/admin/users/${userId}`, { method: "DELETE" });
+}
+
 export function logout() {
   localStorage.removeItem("token");
 }

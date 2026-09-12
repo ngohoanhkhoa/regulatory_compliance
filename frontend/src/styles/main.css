@@ -210,6 +210,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--text-dim);
 }
 
+.navbar-username {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+
+.navbar-username:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.navbar-username.active {
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
 .admin-badge {
   display: inline-flex;
   align-items: center;
@@ -1084,6 +1103,152 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
+}
+
+.settings-subform {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-subform:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settings-subform-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.settings-msg {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.settings-msg.ok {
+  color: var(--good, var(--accent));
+}
+
+.settings-msg.err {
+  color: var(--bad);
+}
+
+/* --- admin users table --- */
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.users-header h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.users-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.users-table-head,
+.users-table-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 90px 110px 150px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 4px;
+}
+
+.users-table-head {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.users-table-row {
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.users-name {
+  color: var(--text);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-you {
+  font-size: 0.65rem;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.users-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all var(--transition);
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.icon-btn.danger:hover:not(:disabled) {
+  background: var(--bad-muted);
+  color: var(--bad);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.users-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  cursor: pointer;
 }
 
 .settings-row {

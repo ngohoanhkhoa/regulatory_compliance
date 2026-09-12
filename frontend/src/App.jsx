@@ -19,10 +19,11 @@ function NavBar() {
         <NavLink to="/chat" className={({ isActive }) => isActive ? "active" : ""}>Chat</NavLink>
         <NavLink to="/topics" className={({ isActive }) => isActive ? "active" : ""}>Topics</NavLink>
         <NavLink to="/datasets" className={({ isActive }) => isActive ? "active" : ""}>Datasets</NavLink>
-        <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>Settings</NavLink>
       </div>
       <div className="navbar-user">
-        <span>{user.username}</span>
+        <NavLink to="/settings" className="navbar-username" title="Account & settings">
+          {user.username}
+        </NavLink>
         {user.is_admin && <span className="admin-badge">admin</span>}
         <button onClick={signOut}>Sign Out</button>
       </div>
