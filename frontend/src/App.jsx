@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { AuthProvider, useAuth } from "./api/AuthContext";
 import { ChatProvider } from "./api/ChatContext";
 import Login from "./pages/Login";
@@ -25,7 +26,10 @@ function NavBar() {
           {user.username}
         </NavLink>
         {user.is_admin && <span className="admin-badge">admin</span>}
-        <button onClick={signOut}>Sign Out</button>
+        <button className="signout-btn" onClick={signOut}>
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
       </div>
     </nav>
   );
