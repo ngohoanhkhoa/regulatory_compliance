@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../api/AuthContext";
 import * as api from "../api/client";
-import {
-  Shield,
-  MessageSquare,
-  BookOpen,
-  User,
-  Lock,
-  AlertCircle,
-  Info,
-} from "lucide-react";
+import { Shield, BookOpen, User, Lock, AlertCircle } from "lucide-react";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 
@@ -114,14 +106,6 @@ export default function Login() {
             {mode === "login" ? "Sign In" : "Create Account"}
           </Button>
         </form>
-
-        <div className="flex items-start gap-2 mt-6 p-3 rounded-lg bg-[var(--warn-muted)] border border-[var(--warn)]">
-          <Info className="w-4 h-4 text-[var(--warn)] shrink-0 mt-0.5" />
-          <p className="text-xs text-[var(--warn)] leading-relaxed">
-            Dataset frozen at August 2019. Recent legislation may be missing.
-            This tool is not a source of legal advice.
-          </p>
-        </div>
       </div>
     </div>
   );
