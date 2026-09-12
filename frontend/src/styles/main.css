@@ -228,21 +228,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-color: var(--accent);
 }
 
-.admin-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  font-size: 0.6rem;
-  font-weight: 600;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: var(--warn-muted);
-  color: var(--warn);
-}
-
 .signout-btn {
   display: inline-flex;
   align-items: center;
