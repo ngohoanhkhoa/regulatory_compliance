@@ -369,7 +369,7 @@ export default function Chat() {
     const optimistic = { role: "user", text: question };
     setMessages((m) => [...m, optimistic]);
     try {
-      const { includeRepealed } = getSettings();
+      const { includeRepealed, language } = getSettings();
 
       const docRefs = mentions
         .filter((m) => m.kind === "documents")
@@ -409,6 +409,7 @@ export default function Chat() {
         dataset_ids: datasetIds,
         document_ids: documentIds,
         celex_ids: celexIds,
+        language: language || "en",
       });
       setMessages((m) => [
         ...m,

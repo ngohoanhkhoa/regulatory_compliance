@@ -135,6 +135,7 @@ def _mock_orchestrator(monkeypatch, answer="Mock answer about 32016R0679.", grou
         dataset_ids=None,
         document_ids=None,
         celex_ids=None,
+        language=None,
     ):
         return {
             "answer": answer,
@@ -197,6 +198,7 @@ def test_query_with_filters_and_top_k(client, admin_token, monkeypatch):
         dataset_ids=None,
         document_ids=None,
         celex_ids=None,
+        language=None,
     ):
         captured["top_k"] = top_k
         captured["filters"] = filters

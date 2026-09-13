@@ -18,6 +18,14 @@ from typing import Any
 
 from src import config
 
+# Supported answer languages (code -> human name shown in the prompt).
+LANGUAGE_NAMES: dict[str, str] = {
+    "en": "English",
+    "fr": "French",
+    "vi": "Vietnamese",
+}
+DEFAULT_LANGUAGE = "en"
+
 
 class PromptBuilder:
     def __init__(self, system_prompt_path: Path = config.SYSTEM_PROMPT_PATH) -> None:
@@ -55,13 +63,25 @@ class PromptBuilder:
             )
         return "\n\n".join(parts)
 
-    def build_messages(self, question: str, chunks: list[dict[str, Any]]) -> list[dict[str, str]]:
+    def build_messages(
+        self,
+        question: str,
+        chunks: list[dict[str, Any]],
+        language: str | None = None,
+    ) -> list[dict[str, str]]:
         if not question or not question.strip():
             raise ValueError("question must be a non-empty string")
         system_text = (
             self.system_prompt_body
             + "\n\n# CONTEXT (for this query)\n\n"
             + self.build_context_block(chunks)
+        )
+        language_name = LANGUAGE_NAMES.get(
+            (language or DEFAULT_LANGUAGE).lower(), LANGUAGE_NAMES[DEFAULT_LANGUAGE]
+        )
+        system_text += (
+            f"\n\n# LANGUAGE\nWrite the entire answer in {language_name}. "
+            "Keep CELEX numbers, act titles, and links unchanged."
         )
         return [
             {"role": "system", "content": system_text},

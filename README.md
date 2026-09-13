@@ -16,6 +16,9 @@ answer in retrieved source text with CELEX numbers, act names, and links.
 > verify against current [eur-lex.europa.eu](https://eur-lex.europa.eu) before
 > acting.
 
+📖 **New to the app?** See the [User Guide](USER_GUIDE.md) for step-by-step
+usage, or jump to the [screenshots](#screenshots).
+
 ## Features
 
 - **Citable answers** — hybrid retrieval with a grounding guardrail flags any
@@ -36,18 +39,82 @@ answer in retrieved source text with CELEX numbers, act names, and links.
   audit log all run on your machine. The only outbound call is the final
   generation request (question + retrieved context) to the configured LLM API.
 
+## Screenshots
+
+| Chat (grounded answer + sources) | Dataset browser (sortable, paginated) |
+| --- | --- |
+| ![Chat](assets/screenshots/chat.jpg) | ![Dataset detail](assets/screenshots/dataset-detail.jpg) |
+
+| Datasets | Topics |
+| --- | --- |
+| ![Datasets](assets/screenshots/datasets.jpg) | ![Topics](assets/screenshots/topics.jpg) |
+
+| Settings (account, language, admin users) | Sign in |
+| --- | --- |
+| ![Settings](assets/screenshots/settings.jpg) | ![Login](assets/screenshots/login.jpg) |
+
 ## Architecture
 
 ```
 React SPA (Vite)
       │  HTTPS (Caddy)
 FastAPI backend
+  ├── Agents    : intent router → Q&A / explore / greeting (+ refiner)
   ├── Retrieval : ChromaDB vectors + BM25 + RRF → LLM rerank
   ├── Generation: OpenCode Go (OpenAI-compatible chat/completions)
   ├── Datasets  : registry + import/export bundles
-  ├── Agents    : intent router (Q&A / explore / greeting)
   └── Storage   : SQLite (users, history, topics, datasets) + local vector store
 ```
+
+### Multi-agent architecture
+
+Every `/chat` message passes through a small agent pipeline
+(`src/agents/`). A router classifies the message, one specialist agent
+answers it, and a refiner cleans up weak responses before they are logged and
+returned.
+
+```
+                 ┌──────────────────────────────────────────────┐
+  user message ─▶│ intent_router.classify_intent()              │
+                 │  • LLM classifier (OpenRouter)               │
+                 │  • rule-based fallback (no key / API error)  │
+                 └───────┬───────────────┬───────────────┬──────┘
+                         │               │               │
+                 greeting│        explore│        question│
+                         ▼               ▼               ▼
+                 ┌─────────────┐ ┌─────────────┐ ┌─────────────────────┐
+                 │ Greeting    │ │ Explore      │ │ QAAgent              │
+                 │ Agent       │ │ Agent        │ │  hybrid retrieval    │
+                 │ (small talk)│ │ (counts,     │ │  → prompt + LLM      │
+                 │             │ │  lists, stats│ │  → citations +       │
+                 │             │ │  over corpus)│ │    grounding check   │
+                 └──────┬──────┘ └──────┬──────┘ └──────────┬──────────┘
+                        └───────────────┴───────────────────┘
+                                        │ answer
+                                        ▼
+                          ┌──────────────────────────────┐
+                          │ refiner_agent.refine_response │
+                          │  (rewrites empty/error output │
+                          │   into helpful guidance)      │
+                          └──────────────┬───────────────┘
+                                         ▼
+                                Response + sources
+                                (audited in query_log)
+```
+
+| Agent | File | Role |
+| --- | --- | --- |
+| Intent router | `intent_router.py` | Classifies each message as `greeting`, `explore`, or `question`. Uses the LLM; falls back to deterministic rules when no API key is set or the call fails, so it never breaks `/chat`. |
+| Q&A agent | `qa_agent.py` | The core RAG path: multi-dataset hybrid retrieval → prompt assembly → generation → citation formatting + grounding check. |
+| Explore agent | `explore_agent.py` | Answers dataset-level questions (counts, lists, filters, statistics) directly over the chunk parquet, without the generation LLM. |
+| Greeting agent | `greeting_agent.py` | Handles greetings and small talk. |
+| Refiner agent | `refiner_agent.py` | If an answer is empty/confusing, rewrites it into a friendly message with suggested follow-ups; passes good answers through unchanged. |
+
+Shared machinery: `retrieval/hybrid_retriever.py` and
+`retrieval/dataset_retriever.py` (vector + BM25 + RRF + rerank),
+`generation/prompt_builder.py`, `generation/llm_client.py`, and
+`generation/citation_formatter.py`. The orchestrator
+(`generation/orchestrator.py`) is the thin adapter the Q&A agent calls.
 
 ## Quick start (Docker)
 
@@ -204,8 +271,9 @@ regulatory_compliance/
 ├── prompts/          # versioned system prompt
 ├── tests/            # pytest unit + integration
 ├── scripts/          # run_ingestion.sh, run_server.sh
+├── assets/           # screenshots used in this README
 ├── Dockerfile, Dockerfile.frontend, docker-compose.yml, Caddyfile
-└── pyproject.toml, .env.example, Makefile
+└── pyproject.toml, .env.example, Makefile, USER_GUIDE.md
 ```
 
 ## Development

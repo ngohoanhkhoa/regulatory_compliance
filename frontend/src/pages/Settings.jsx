@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getSettings, setSetting } from "../api/settings";
+import { getSettings, setSetting, LANGUAGES } from "../api/settings";
 import { useAuth } from "../api/AuthContext";
 import * as api from "../api/client";
 import {
@@ -36,6 +36,9 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [autoExpandSources, setAutoExpandSources] = useState(true);
+  const [language, setLanguage] = useState(
+    () => getSettings().language || "en"
+  );
   const [saved, setSaved] = useState(false);
 
   const [username, setUsername] = useState(user?.username || "");
@@ -56,6 +59,17 @@ export default function SettingsPage() {
   useEffect(() => {
     setUsername(user?.username || "");
   }, [user?.username]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  const handleLanguage = (code) => {
+    setLanguage(code);
+    setSetting("language", code);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const handleToggle = (key, value, setter) => {
     setter(value);
@@ -258,6 +272,40 @@ export default function SettingsPage() {
                 checked={autoExpandSources}
                 onChange={(v) => handleToggle(null, v, setAutoExpandSources)}
               />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Language */}
+      <Card className="mb-6">
+        <div className="settings-group">
+          <h3 className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-[var(--accent)]" />
+            Language
+          </h3>
+          <div className="settings-row">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-[var(--text)]">
+                Answer language
+              </label>
+              <p className="settings-desc">
+                The language the assistant replies in. CELEX numbers, act
+                titles, and links are kept unchanged.
+              </p>
+            </div>
+            <div className="settings-control">
+              <select
+                className="settings-select"
+                value={language}
+                onChange={(e) => handleLanguage(e.target.value)}
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

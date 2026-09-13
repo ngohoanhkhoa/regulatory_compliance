@@ -63,6 +63,7 @@ def answer_question(
     dataset_ids: list[int] | None = None,
     document_ids: list[int] | None = None,
     celex_ids: list[str] | None = None,
+    language: str | None = None,
 ) -> dict[str, Any]:
     """Produce a fully-cited answer for `question`."""
     if retrieved is None:
@@ -83,7 +84,7 @@ def answer_question(
                 question, top_k=top_k, filters=filters, include_repealed=include_repealed
             )
     builder = prompt_builder.get_prompt_builder()
-    messages = builder.build_messages(question, retrieved)
+    messages = builder.build_messages(question, retrieved, language=language)
     llm = llm or llm_client.get_llm_client()
     response = llm.complete(messages, session_id=session_id)
     answer_text = response.text

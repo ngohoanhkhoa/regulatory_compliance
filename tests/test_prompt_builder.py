@@ -47,6 +47,18 @@ def test_build_messages_structure(tmp_path):
     assert msgs[1]["content"] == "Is GDPR in force?"
 
 
+def test_build_messages_language_instruction(tmp_path):
+    p = tmp_path / "sp.md"
+    p.write_text("SYSTEM BODY HERE.")
+    b = pb.PromptBuilder(system_prompt_path=p)
+    for code, name in (("en", "English"), ("fr", "French"), ("vi", "Vietnamese")):
+        msgs = b.build_messages("Q", [], language=code)
+        assert f"Write the entire answer in {name}" in msgs[0]["content"]
+    # Unknown / missing language defaults to English.
+    assert "in English" in b.build_messages("Q", [])[0]["content"]
+    assert "in English" in b.build_messages("Q", [], language="de")[0]["content"]
+
+
 def test_build_messages_empty_question_raises(tmp_path):
     p = tmp_path / "sp.md"
     p.write_text("x")

@@ -2,7 +2,14 @@ const KEY = "regcom_settings";
 
 const DEFAULTS = {
   includeRepealed: false,
+  language: "en",
 };
+
+export const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
+  { code: "vi", label: "Tiếng Việt" },
+];
 
 export function getSettings() {
   try {

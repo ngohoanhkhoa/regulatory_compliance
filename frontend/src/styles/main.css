@@ -1144,6 +1144,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 0;
 }
 
+.settings-select {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.settings-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
 .settings-msg.ok {
   color: var(--good, var(--accent));
 }

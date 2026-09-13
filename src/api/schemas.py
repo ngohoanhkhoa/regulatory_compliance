@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,6 +79,7 @@ class QueryRequest(BaseModel):
     dataset_ids: list[int] | None = Field(default=None)
     document_ids: list[int] | None = Field(default=None)
     celex_ids: list[str] | None = Field(default=None)
+    language: Literal["en", "fr", "vi"] | None = Field(default=None)
 
 
 class Source(BaseModel):

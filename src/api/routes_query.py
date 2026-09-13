@@ -42,6 +42,7 @@ def query(
         dataset_ids=req.dataset_ids,
         document_ids=req.document_ids,
         celex_ids=req.celex_ids,
+        language=req.language,
     )
     # --- audit log (§9.3) ---------------------------------------------------
     conn = models.get_db()

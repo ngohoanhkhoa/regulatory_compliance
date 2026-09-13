@@ -147,6 +147,7 @@ export async function chat(question, opts = {}) {
         opts.document_ids && opts.document_ids.length ? opts.document_ids : null,
       celex_ids:
         opts.celex_ids && opts.celex_ids.length ? opts.celex_ids : null,
+      language: opts.language || null,
     },
   });
 }
