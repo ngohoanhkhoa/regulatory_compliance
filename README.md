@@ -1,6 +1,6 @@
 # EU Regulatory Compliance RAG Chatbot
 
-[![CI](https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml)
+[![CI](<https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml/badge.svg>)](<https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml>)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![Node 18+](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org/)
@@ -52,15 +52,15 @@ FastAPI backend
 ## Quick start (Docker)
 
 ```bash
-git clone https://github.com/<your-org>/regulatory_compliance.git
+git clone https://github.com/ngohoanhkhoa/regulatory_compliance.git
 cd regulatory_compliance
 cp .env.example .env            # fill in OPENCODE_GO_API_KEY (and OpenRouter key)
 docker compose up --build -d
 ```
 
-- Frontend / reverse proxy: <http://localhost>
-- API + Swagger UI: <http://localhost/docs>
-- Backend directly: <http://localhost:8000>, frontend dev server: <http://localhost:5173>
+- Frontend / reverse proxy: [http://localhost](http://localhost)
+- API + Swagger UI: [http://localhost/docs](http://localhost/docs)
+- Backend directly: [http://localhost:8000](http://localhost:8000), frontend dev server: [http://localhost:5173](http://localhost:5173)
 
 The first user to **register** becomes an admin, and a bootstrap `admin` account
 is created on first start (see [Security](#security)). To serve the regulatory
@@ -102,62 +102,62 @@ scripts/run_server.sh                 # API on :8000 (add --reload for dev)
 cd frontend && npm run dev            # SPA on :5173
 ```
 
-Open <http://localhost:5173> and start asking questions.
+Open [http://localhost:5173](http://localhost:5173) and start asking questions.
 
 ## Configuration
 
 All settings are environment variables (see `.env.example`). Highlights:
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `OPENCODE_GO_API_KEY` | — | LLM API key for generation (**required**) |
-| `OPENCODE_GO_MODEL` | `deepseek-v4-flash` | Generation model |
-| `OPENROUTER_API_KEY` | — | Embeddings + reranker API key (**required**) |
-| `OPENROUTER_EMBEDDING_MODEL` | `openai/text-embedding-3-small` | Embedding model |
-| `JWT_SECRET` | `change-me…` | JWT signing secret — set a strong random value |
-| `DEFAULT_ADMIN_USERNAME` / `DEFAULT_ADMIN_PASSWORD` | `admin` / `0000` | Bootstrap admin (change the password) |
-| `DATA_CUTOFF_DATE` | `2019-08-31` | Corpus freeze date shown to users |
-| `CORS_ORIGINS` | localhost origins | Allowed browser origins |
-| `DATASETS_DIR` | `data/datasets` | Imported regulatory datasets |
-| `UPLOAD_DIR` | `data/uploads` | Per-user uploaded documents |
-| `DEFAULT_TOP_K`, `RERANK_CANDIDATE_K` | `7`, `25` | Retrieval sizing |
+| Variable                                                | Default                           | Purpose                                            |
+| ------------------------------------------------------- | --------------------------------- | -------------------------------------------------- |
+| `OPENCODE_GO_API_KEY`                                 | —                                | LLM API key for generation (**required**)    |
+| `OPENCODE_GO_MODEL`                                   | `deepseek-v4-flash`             | Generation model                                   |
+| `OPENROUTER_API_KEY`                                  | —                                | Embeddings + reranker API key (**required**) |
+| `OPENROUTER_EMBEDDING_MODEL`                          | `openai/text-embedding-3-small` | Embedding model                                    |
+| `JWT_SECRET`                                          | `change-me…`                   | JWT signing secret — set a strong random value    |
+| `DEFAULT_ADMIN_USERNAME` / `DEFAULT_ADMIN_PASSWORD` | `admin` / `0000`              | Bootstrap admin (change the password)              |
+| `DATA_CUTOFF_DATE`                                    | `2019-08-31`                    | Corpus freeze date shown to users                  |
+| `CORS_ORIGINS`                                        | localhost origins                 | Allowed browser origins                            |
+| `DATASETS_DIR`                                        | `data/datasets`                 | Imported regulatory datasets                       |
+| `UPLOAD_DIR`                                          | `data/uploads`                  | Per-user uploaded documents                        |
+| `DEFAULT_TOP_K`, `RERANK_CANDIDATE_K`               | `7`, `25`                     | Retrieval sizing                                   |
 
 ## API
 
 Interactive docs at `/docs`. Main routes:
 
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `/auth/register` · `/auth/login` | Account creation / JWT login |
-| GET | `/auth/me` | Current user |
-| PUT | `/auth/me/username` · `/auth/me/password` | Self-service account changes |
-| POST | `/query` · `/chat` | Ask a question (answer + sources + warnings) |
-| GET | `/api/datasets` | Datasets visible to the user |
-| GET | `/api/datasets/{id}/acts` | Canonical, sortable, paginated items |
-| GET | `/api/datasets/{id}/items/{item_id}` | One item's metadata + content |
-| POST/GET | `/api/datasets/import` · `/api/datasets/{id}/export` | Bundle import/export |
-| GET/POST/DELETE | `/api/topics…` | Saved topics + timelines |
-| GET/POST/DELETE | `/api/documents…` | Personal document library |
-| GET/POST/PUT/DELETE | `/api/admin/users…` | Admin user management |
-| GET/DELETE | `/history` | Per-user query history |
-| POST | `/feedback` | Thumbs up/down |
-| GET | `/health` | Liveness/readiness |
+| Method              | Path                                                      | Purpose                                      |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------- |
+| POST                | `/auth/register` · `/auth/login`                     | Account creation / JWT login                 |
+| GET                 | `/auth/me`                                              | Current user                                 |
+| PUT                 | `/auth/me/username` · `/auth/me/password`            | Self-service account changes                 |
+| POST                | `/query` · `/chat`                                   | Ask a question (answer + sources + warnings) |
+| GET                 | `/api/datasets`                                         | Datasets visible to the user                 |
+| GET                 | `/api/datasets/{id}/acts`                               | Canonical, sortable, paginated items         |
+| GET                 | `/api/datasets/{id}/items/{item_id}`                    | One item's metadata + content                |
+| POST/GET            | `/api/datasets/import` · `/api/datasets/{id}/export` | Bundle import/export                         |
+| GET/POST/DELETE     | `/api/topics…`                                         | Saved topics + timelines                     |
+| GET/POST/DELETE     | `/api/documents…`                                      | Personal document library                    |
+| GET/POST/PUT/DELETE | `/api/admin/users…`                                    | Admin user management                        |
+| GET/DELETE          | `/history`                                              | Per-user query history                       |
+| POST                | `/feedback`                                             | Thumbs up/down                               |
+| GET                 | `/health`                                               | Liveness/readiness                           |
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Language | Python 3.11–3.12 (uv-managed) |
-| Data loading | polars (lazy/streaming) |
-| Embeddings | OpenRouter (`text-embedding-3-small`) |
-| Vector store | ChromaDB (embedded, local) |
-| Keyword index | rank_bm25 (in-memory) |
-| Reranker | LLM-based via OpenRouter |
-| Generation | OpenCode Go (OpenAI-compatible) |
-| Backend | FastAPI + SQLite |
-| Frontend | React + Vite |
-| Proxy | Caddy |
-| Packaging | `pyproject.toml` + uv, Docker Compose |
+| Layer         | Choice                                  |
+| ------------- | --------------------------------------- |
+| Language      | Python 3.11–3.12 (uv-managed)          |
+| Data loading  | polars (lazy/streaming)                 |
+| Embeddings    | OpenRouter (`text-embedding-3-small`) |
+| Vector store  | ChromaDB (embedded, local)              |
+| Keyword index | rank_bm25 (in-memory)                   |
+| Reranker      | LLM-based via OpenRouter                |
+| Generation    | OpenCode Go (OpenAI-compatible)         |
+| Backend       | FastAPI + SQLite                        |
+| Frontend      | React + Vite                            |
+| Proxy         | Caddy                                   |
+| Packaging     | `pyproject.toml` + uv, Docker Compose |
 
 ## Project structure
 

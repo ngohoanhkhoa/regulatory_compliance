@@ -36,10 +36,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/<your-org>/regulatory_compliance"
-Repository = "https://github.com/<your-org>/regulatory_compliance"
-Issues = "https://github.com/<your-org>/regulatory_compliance/issues"
-Changelog = "https://github.com/<your-org>/regulatory_compliance/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/ngohoanhkhoa/regulatory_compliance"
+Repository = "https://github.com/ngohoanhkhoa/regulatory_compliance"
+Issues = "https://github.com/ngohoanhkhoa/regulatory_compliance/issues"
+Changelog = "https://github.com/ngohoanhkhoa/regulatory_compliance/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
