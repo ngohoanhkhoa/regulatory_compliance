@@ -36,6 +36,19 @@ cd frontend
 npm run build
 ```
 
+## Large files & data
+
+Large binary artifacts are stored with [Git LFS](https://git-lfs.com):
+
+- Install it once (`git lfs install`) before cloning/pushing so
+  `data/processed/chunks.parquet` (the processed CEPS EurLex corpus) resolves to
+  the real file instead of a pointer.
+- Never commit the raw CSV (`data/raw/`), the metadata database
+  (`data/processed/metadata.db`), user uploads, or `.vector_store/` — they are
+  gitignored and may contain large or sensitive data.
+- New large artifacts should be added to `.gitattributes` (LFS) rather than
+  committed directly to Git.
+
 ## Project layout
 
 | Path | Contents |

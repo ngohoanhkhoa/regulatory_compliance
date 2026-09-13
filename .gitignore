@@ -1,6 +1,10 @@
 # Raw corpus + user data (never committed)
 data/raw/
-data/processed/
+# Processed corpus is distributed via Git LFS (see .gitattributes); user data
+# (metadata.db) and the ingestion log stay local.
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/chunks.parquet
 data/uploads/
 data/datasets/
 

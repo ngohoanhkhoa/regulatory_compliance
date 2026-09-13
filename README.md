@@ -76,7 +76,33 @@ uv sync --extra dev
 cp .env.example .env            # fill in API keys
 ```
 
-### Build the regulatory index
+### Prebuilt corpus (Git LFS)
+
+The repository ships the **processed CEPS EurLex corpus** — the chunked
+`data/processed/chunks.parquet` (~190 MB, ~550k chunks) — via
+[Git LFS](https://git-lfs.com), so you can skip the CSV download and chunking
+steps:
+
+```bash
+git lfs install          # once per machine
+git lfs pull             # fetch data/processed/chunks.parquet
+```
+
+> Cloning without Git LFS gives you a small pointer file instead of the data. If
+> `data/processed/chunks.parquet` is only a few lines, run `git lfs pull`.
+
+You still need to build the vector index from it (this calls the embedding API):
+
+```bash
+uv run python -m src.ingestion.embed_and_index
+```
+
+The SQLite metadata database and the ~2 GB `.vector_store/` are **not** shipped;
+they are created locally on first run / first embedding.
+
+### Build the corpus from source (optional)
+
+If you prefer to rebuild from the raw export:
 
 1. Download the CEPS EurLex CSV and place it at
    `data/raw/EurLex_regulations_all.csv` (not committed — it's ~1 GB).
@@ -211,7 +237,14 @@ provided templates.
 
 ## License
 
-[MIT](LICENSE) © 2026 The EU Regulatory Compliance RAG Chatbot contributors.
+The **source code** is released under the [MIT License](LICENSE) © 2026 The EU
+Regulatory Compliance RAG Chatbot contributors.
 
-The CEPS EurLex dataset is **not** distributed with this project; obtain it from
-its original source and respect its terms of use.
+### Data
+
+The processed corpus (`data/processed/chunks.parquet`, shipped via Git LFS) is
+derived from the **CEPS EurLex** export of EU legal acts on
+[eur-lex.europa.eu](https://eur-lex.europa.eu) and is frozen at August 2019.
+It is provided for research and informational use; review and comply with the
+upstream dataset's terms before redistributing. The raw 1 GB CSV is **not**
+included — obtain it from the original source if you want to rebuild the corpus.
