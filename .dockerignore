@@ -29,6 +29,3 @@ data
 .env
 .env.*
 !.env.example
-
-# Docs (not needed at runtime)
-docs

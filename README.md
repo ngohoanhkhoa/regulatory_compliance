@@ -204,7 +204,6 @@ regulatory_compliance/
 ├── prompts/          # versioned system prompt
 ├── tests/            # pytest unit + integration
 ├── scripts/          # run_ingestion.sh, run_server.sh
-├── docs/             # technical overview
 ├── Dockerfile, Dockerfile.frontend, docker-compose.yml, Caddyfile
 └── pyproject.toml, .env.example, Makefile
 ```
