@@ -2,9 +2,7 @@
 #
 # After cloning, run `git lfs install` once, then `git lfs pull` to fetch the
 # actual files (see the "Prebuilt corpus" section in README.md).
+#
+# The vector store (~2 GB) is intentionally NOT shipped; rebuild it from the
+# parquet with `python -m src.ingestion.embed_and_index`.
 data/processed/chunks.parquet filter=lfs diff=lfs merge=lfs -text
-
-# Optional: the vector store is ~2 GB. It is not committed by default (GitHub
-# LFS free tier is 1 GB), but tracking it here lets maintainers publish it via
-# LFS if they have quota. Rebuild it instead with `src.ingestion.embed_and_index`.
-.vector_store/** filter=lfs diff=lfs merge=lfs -text
