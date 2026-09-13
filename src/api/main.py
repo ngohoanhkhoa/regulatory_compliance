@@ -36,12 +36,24 @@ app = FastAPI(
 @app.on_event("startup")
 def _bootstrap() -> None:
     """Ensure the default admin and the built-in regulatory dataset exist."""
+    import logging
+
     conn = models.get_db()
     try:
-        models.ensure_default_admin(conn, username="admin", password="0000")
+        models.ensure_default_admin(
+            conn,
+            username=config.DEFAULT_ADMIN_USERNAME,
+            password=config.DEFAULT_ADMIN_PASSWORD,
+        )
         models.ensure_system_datasets(conn)
     finally:
         conn.close()
+    if config.DEFAULT_ADMIN_PASSWORD == "0000":
+        logging.getLogger("uvicorn.error").warning(
+            "Bootstrap admin '%s' uses the default password. Change it in "
+            "Settings or set DEFAULT_ADMIN_PASSWORD before exposing this service.",
+            config.DEFAULT_ADMIN_USERNAME,
+        )
 
 # CORS: allow the frontend (M6) to call the API during development. Tighten in
 # production via the env var.

@@ -1,11 +1,29 @@
 [project]
 name = "regulatory-compliance"
 version = "0.1.0"
-description = "EU regulatory compliance RAG chatbot (CEPS EurLex)"
+description = "Citable RAG chatbot for EU regulatory obligations (CEPS EurLex)"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
-license = { text = "Proprietary" }
-authors = [{ name = "regulatory_compliance contributors" }]
+license = { text = "MIT" }
+authors = [{ name = "The EU Regulatory Compliance RAG Chatbot contributors" }]
+keywords = ["rag", "retrieval-augmented-generation", "legal-tech", "eurlex", "eu-law", "fastapi", "chromadb"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Legal Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Linguistic",
+]
+
+[project.urls]
+Homepage = "https://github.com/<your-org>/regulatory_compliance"
+Repository = "https://github.com/<your-org>/regulatory_compliance"
+Issues = "https://github.com/<your-org>/regulatory_compliance/issues"
+Changelog = "https://github.com/<your-org>/regulatory_compliance/blob/main/CHANGELOG.md"
 
 dependencies = [
     "polars>=1.9.0",

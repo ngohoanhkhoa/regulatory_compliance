@@ -21,9 +21,11 @@ __pycache__/
 dist/
 build/
 .pytest_cache/
+.mypy_cache/
 .coverage
 htmlcov/
 .ruff_cache/
+*.log
 
 # Vector store / index artifacts (later milestones)
 .vector_store/

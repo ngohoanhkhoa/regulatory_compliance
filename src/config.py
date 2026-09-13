@@ -211,6 +211,11 @@ JWT_SECRET: str = os.getenv("JWT_SECRET", "change-me-in-production-please")
 JWT_ALG: str = os.getenv("JWT_ALG", "HS256")
 JWT_TTL_MIN: int = int(os.getenv("JWT_TTL_MIN", "720"))  # 12h default
 
+# Bootstrap admin created on first start (only if the username is absent). Change
+# the password for any shared/production deployment, or set these via env.
+DEFAULT_ADMIN_USERNAME: str = os.getenv("DEFAULT_ADMIN_USERNAME", "admin")
+DEFAULT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_ADMIN_PASSWORD", "0000")
+
 # Metadata/audit DB (§6, §11) — SQLite under data/processed so backups include it.
 METADATA_DB_PATH: Path = PROCESSED_DIR / "metadata.db"
 
