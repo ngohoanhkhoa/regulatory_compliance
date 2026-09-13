@@ -1,9 +1,9 @@
 # Build the Python distribution and publish it to PyPI.
 #
 # Publishing is GATED so a GitHub Release never fails before PyPI is set up:
-#   * it only runs automatically when the repository variable
-#     `PUBLISH_TO_PYPI` is set to "true", and
-#   * it can always be triggered manually via "Run workflow" (workflow_dispatch).
+#   * it runs only when the repository variable `PUBLISH_TO_PYPI` is "true",
+#   * and can then be triggered either by a release or manually
+#     ("Run workflow" → workflow_dispatch).
 #
 # One-time setup for trusted publishing (no API token needed):
 #   1. PyPI → your project (or "Publishing" → add a pending project) →
@@ -29,9 +29,8 @@ permissions:
 
 jobs:
   release-build:
-    # Skip on release until publishing is explicitly enabled; always run when
-    # dispatched manually.
-    if: github.event_name == 'workflow_dispatch' || vars.PUBLISH_TO_PYPI == 'true'
+    # Skipped until PyPI publishing is explicitly enabled.
+    if: vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +52,7 @@ jobs:
           path: dist/
 
   pypi-publish:
-    if: github.event_name == 'workflow_dispatch' || vars.PUBLISH_TO_PYPI == 'true'
+    if: vars.PUBLISH_TO_PYPI == 'true'
     runs-on: ubuntu-latest
     needs:
       - release-build
