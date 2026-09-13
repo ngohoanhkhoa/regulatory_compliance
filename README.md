@@ -1,13 +1,13 @@
 # EU Regulatory Compliance RAG Chatbot
 
-[![CI](<https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml/badge.svg>)](<https://github.com/<your-org>/regulatory_compliance/actions/workflows/ci.yml>)
+[![CI](https://github.com/ngohoanhkhoa/regulatory_compliance/actions/workflows/ci.yml/badge.svg)](https://github.com/ngohoanhkhoa/regulatory_compliance/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![Node 18+](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 A self-hostable, **fully citable** Retrieval-Augmented Generation (RAG) chatbot
-for EU regulatory questions. It answers against the **CEPS EurLex** corpus
+for EU regulatory questions. It answers against the **EurLex** corpus
 (~140k legal acts) and any regulatory dataset you import, grounding every
 answer in retrieved source text with CELEX numbers, act names, and links.
 
@@ -145,7 +145,7 @@ cp .env.example .env            # fill in API keys
 
 ### Prebuilt corpus (Git LFS)
 
-The repository ships the **processed CEPS EurLex corpus** — the chunked
+The repository ships the **processed EurLex corpus** — the chunked
 `data/processed/chunks.parquet` (~190 MB, ~550k chunks) — via
 [Git LFS](https://git-lfs.com), so you can skip the CSV download and chunking
 steps:
@@ -171,8 +171,9 @@ they are created locally on first run / first embedding.
 
 If you prefer to rebuild from the raw export:
 
-1. Download the CEPS EurLex CSV and place it at
+1. Download the EurLex dataset and place the CSV at
    `data/raw/EurLex_regulations_all.csv` (not committed — it's ~1 GB).
+   Source: [EurLex dataset on Kaggle](https://www.kaggle.com/datasets/puskas78/eurlex-dataset).
 2. Run ingestion (clean → chunk → embed → index):
 
 ```bash
@@ -309,9 +310,13 @@ Regulatory Compliance RAG Chatbot contributors.
 
 ### Data
 
-The processed corpus (`data/processed/chunks.parquet`, shipped via Git LFS) is
-derived from the **CEPS EurLex** export of EU legal acts on
-[eur-lex.europa.eu](https://eur-lex.europa.eu) and is frozen at August 2019.
-It is provided for research and informational use; review and comply with the
-upstream dataset's terms before redistributing. The raw 1 GB CSV is **not**
-included — obtain it from the original source if you want to rebuild the corpus.
+The corpus is the **EurLex dataset**
+([kaggle.com/datasets/puskas78/eurlex-dataset](https://www.kaggle.com/datasets/puskas78/eurlex-dataset))
+— EU legal acts from [eur-lex.europa.eu](https://eur-lex.europa.eu), frozen at
+August 2019. The processed chunk store (`data/processed/chunks.parquet`) is
+shipped via Git LFS; the raw ~1 GB CSV is **not** included — download it from the
+Kaggle source above if you want to rebuild the corpus. Provided for research and
+informational use; review and comply with the upstream dataset's terms before
+redistributing.
+
+Credit: EurLex dataset by [puskas78](https://www.kaggle.com/puskas78) on Kaggle.
