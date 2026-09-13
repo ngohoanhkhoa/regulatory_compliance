@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Literal
 
@@ -10,6 +11,42 @@ import httpx
 from src import config
 
 Intent = Literal["question", "explore", "greeting"]
+
+_GREETING_RE = re.compile(
+    r"\b(hi|hello|hey|yo|thanks|thank you|bye|goodbye|good morning|"
+    r"good evening|cheers)\b"
+)
+_EXPLORE_HINTS = (
+    "how many",
+    "how much",
+    "count",
+    "number of",
+    "list all",
+    "list the",
+    "list of",
+    "show me",
+    "which acts",
+    "what acts",
+    "browse",
+    "statistics",
+    "distribution",
+    "breakdown",
+    "dataset",
+    "filter by",
+)
+
+
+def _heuristic(message: str) -> Intent:
+    """Deterministic fallback used when no API key is configured or the LLM
+    router is unreachable/erroring. Keeps the app usable offline (and in CI)."""
+    text = (message or "").strip().lower()
+    if not text:
+        return "question"
+    if _GREETING_RE.search(text) and len(text) <= 40:
+        return "greeting"
+    if any(hint in text for hint in _EXPLORE_HINTS):
+        return "explore"
+    return "question"
 
 ROUTER_PROMPT = """\
 Classify the user's message into exactly one category. Return ONLY the category name, nothing else.
@@ -45,6 +82,10 @@ class IntentRouter:
         self._endpoint = f"{self.base_url}/chat/completions"
 
     def classify(self, message: str) -> Intent:
+        # Without a configured key there is nothing to call — use the heuristic.
+        if not self.api_key:
+            return _heuristic(message)
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -57,12 +98,10 @@ class IntentRouter:
             "max_tokens": 16,
         }
 
-        last_exc: Exception | None = None
         for attempt in range(2):
             try:
                 resp = httpx.post(self._endpoint, headers=headers, json=payload, timeout=15.0)
-            except httpx.HTTPError as exc:
-                last_exc = exc
+            except httpx.HTTPError:
                 time.sleep(1)
                 continue
 
@@ -74,13 +113,12 @@ class IntentRouter:
                     return "greeting"
                 return "question"
 
-            last_exc = RuntimeError(f"router failed ({resp.status_code}): {resp.text[:200]}")
             if resp.status_code == 429:
                 time.sleep(2)
                 continue
-            raise last_exc
+            break  # any other error -> fall back rather than failing the request
 
-        return "question"
+        return _heuristic(message)
 
 
 _router: IntentRouter | None = None

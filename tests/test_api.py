@@ -305,6 +305,8 @@ def test_chat_forwards_document_ids(client, admin_token, monkeypatch):
             }
 
     monkeypatch.setattr("src.api.routes_chat.get_qa_agent", lambda: FakeAgent())
+    # Keep the test offline: don't let the intent router call the LLM.
+    monkeypatch.setattr("src.api.routes_chat.classify_intent", lambda _q: "question")
     r = client.post(
         "/chat",
         json={
