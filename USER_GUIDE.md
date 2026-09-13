@@ -81,11 +81,12 @@ Each answer includes:
 Answers are saved to your **Recent History** (sidebar); click an item to reopen
 the exchange, or **Open** to see and delete the full history.
 
-### Answer language
+### Language (interface + answers)
 
-Settings → **Language** lets you choose the language the assistant writes in:
-**English**, **Français**, or **Tiếng Việt**. CELEX numbers, act titles, and
-links are always kept as-is.
+Settings → **Language** switches the whole interface **and** the language the
+assistant writes in: **English**, **Français**, or **Tiếng Việt**. The change
+takes effect immediately. CELEX numbers, act titles, and links are always kept
+as-is.
 
 ## My Documents
 

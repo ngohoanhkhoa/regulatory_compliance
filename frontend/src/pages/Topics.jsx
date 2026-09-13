@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import * as api from "../api/client";
+import { useI18n } from "../i18n";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Badge from "../components/ui/Badge";
@@ -152,6 +153,7 @@ function TimelineView({ timeline, loading, refreshing }) {
 }
 
 export default function Topics() {
+  const { t } = useI18n();
   const [topics, setTopics] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [timeline, setTimeline] = useState(null);
@@ -299,10 +301,10 @@ export default function Topics() {
     <div className="topics-page">
       <aside className="topics-sidebar">
         <div className="sidebar-header">
-          <h3>Topics</h3>
+          <h3>{t("Topics")}</h3>
           <button className="sidebar-new-btn" onClick={startCreate}>
             <Plus className="w-4 h-4" />
-            New Topic
+            {t("New Topic")}
           </button>
         </div>
 
@@ -312,7 +314,7 @@ export default function Topics() {
             type="text"
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            placeholder="Filter topics…"
+            placeholder={t("Filter topics…")}
           />
         </div>
 
@@ -321,7 +323,7 @@ export default function Topics() {
             <LoadingSpinner size="sm" text="" />
           ) : visibleTopics.length === 0 ? (
             <p className="topics-empty">
-              {topics.length === 0 ? "No topics yet" : "No topics match your filter"}
+              {topics.length === 0 ? t("No topics yet") : t("No topics match your filter")}
             </p>
           ) : (
             visibleTopics.map((topic) => (
@@ -349,7 +351,7 @@ export default function Topics() {
 
         {view === "form" && (
           <form className="topic-form" onSubmit={save}>
-            <h2>{editingId ? "Edit Topic" : "New Topic"}</h2>
+            <h2>{editingId ? t("Edit Topic") : t("New Topic")}</h2>
             <p className="topic-form-hint">
               Give the topic a name. We search the EurLex corpus for acts that match it and
               plot them on a timeline by document date.
@@ -419,7 +421,7 @@ export default function Topics() {
                 Cancel
               </Button>
               <Button type="submit" isLoading={saving}>
-                {editingId ? "Save changes" : "Create topic"}
+                {editingId ? t("Save changes") : t("Create topic")}
               </Button>
             </div>
           </form>
@@ -452,7 +454,7 @@ export default function Topics() {
                   onClick={() => refreshTimeline(selectedTopic.id)}
                   disabled={refreshing || loadingTimeline}
                 >
-                  {refreshing ? "Refreshing…" : "Refresh"}
+                  {refreshing ? t("Refreshing…") : t("Refresh")}
                 </Button>
                 <Button
                   variant="secondary"
@@ -484,13 +486,13 @@ export default function Topics() {
         {view === "empty" && (
           <div className="topics-empty-main">
             <Layers className="w-14 h-14 mx-auto mb-4 text-[var(--text-muted)]" />
-            <strong>Track a regulatory topic</strong>
+            <strong>{t("Track a regulatory topic")}</strong>
             <p>
               Create a topic to see how EU regulation on a subject changes over time. We
               search the corpus and lay the matching acts out on a timeline.
             </p>
             <Button icon={Plus} onClick={startCreate}>
-              Create your first topic
+              {t("Create your first topic")}
             </Button>
           </div>
         )}
@@ -499,7 +501,7 @@ export default function Topics() {
       <Modal
         isOpen={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
-        title="Delete topic"
+        title={t("Delete topic")}
       >
         <p className="modal-confirm-text">
           Delete “{confirmDelete?.name}”? This cannot be undone.

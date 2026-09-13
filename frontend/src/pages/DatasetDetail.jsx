@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as api from "../api/client";
 import { useAuth } from "../api/AuthContext";
+import { useI18n } from "../i18n";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -79,6 +80,7 @@ function renderCell(item, key) {
 }
 
 function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
+  const { t } = useI18n();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [columns, setColumns] = useState([]);
@@ -247,11 +249,11 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
               setExportOpen(true);
             }}
           >
-            Export bundle
+            {t("Export bundle")}
           </Button>
           {isAdmin && (
             <Button variant="danger" icon={Trash2} onClick={openDelete}>
-              Remove dataset
+              {t("Remove dataset")}
             </Button>
           )}
         </div>
@@ -263,28 +265,28 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             <Layers className="w-4 h-4" />
           </div>
           <div className="stat-value">{dataset.items}</div>
-          <div className="stat-label">Items</div>
+          <div className="stat-label">{t("Items")}</div>
         </Card>
         <Card className="space-y-2">
           <div className="stat-icon green">
             <FileText className="w-4 h-4" />
           </div>
           <div className="stat-value">{dataset.chunks}</div>
-          <div className="stat-label">Text chunks</div>
+          <div className="stat-label">{t("Text chunks")}</div>
         </Card>
         <Card className="space-y-2">
           <div className="stat-icon yellow">
             <Database className="w-4 h-4" />
           </div>
           <div className="stat-value">{dataset.vectors ?? "—"}</div>
-          <div className="stat-label">Indexed vectors</div>
+          <div className="stat-label">{t("Indexed vectors")}</div>
         </Card>
         <Card className="space-y-2">
           <div className="stat-icon red">
             <Download className="w-4 h-4" />
           </div>
           <div className="stat-value">{dataset.source}</div>
-          <div className="stat-label">Source</div>
+          <div className="stat-label">{t("Source")}</div>
         </Card>
       </div>
 
@@ -293,7 +295,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
           <Search className="w-4 h-4" />
           <input
             type="text"
-            placeholder="Search by ID, title, or status…"
+            placeholder={t("Search by ID, title, or status…")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -304,11 +306,11 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
       </form>
 
       {loading ? (
-        <LoadingSpinner size="sm" text="Loading items…" />
+        <LoadingSpinner size="sm" text={t("Loading items…")} />
       ) : items.length === 0 ? (
         <div className="data-empty">
           <Database className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No items found.</p>
+          <p>{t("No items found.")}</p>
         </div>
       ) : (
         <>
@@ -362,7 +364,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
 
           <div className="pager">
             <span className="pager-info">
-              Showing {start}–{end} of {total}
+              {t("Showing {from}–{to} of {total}", { from: start, to: end, total })}
             </span>
             <div className="pager-controls">
               <button
@@ -370,31 +372,31 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
                 disabled={page === 0}
                 onClick={() => setPage(0)}
               >
-                « First
+                « {t("First")}
               </button>
               <button
                 className="pager-btn"
                 disabled={page === 0}
                 onClick={() => setPage((p) => p - 1)}
               >
-                ‹ Prev
+                ‹ {t("Prev")}
               </button>
               <span className="pager-page">
-                Page {page + 1} / {totalPages}
+                {t("Page {page} / {pages}", { page: page + 1, pages: totalPages })}
               </span>
               <button
                 className="pager-btn"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Next ›
+                {t("Next")} ›
               </button>
               <button
                 className="pager-btn"
                 disabled={page >= totalPages - 1}
                 onClick={() => setPage(totalPages - 1)}
               >
-                Last »
+                {t("Last")} »
               </button>
             </div>
             <select
@@ -407,7 +409,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             >
               {PAGE_SIZES.map((n) => (
                 <option key={n} value={n}>
-                  {n} / page
+                  {t("{n} / page", { n })}
                 </option>
               ))}
             </select>
@@ -418,7 +420,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
       <Modal
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        title="Remove regulatory dataset"
+        title={t("Remove dataset")}
       >
         <div className="danger-notice">
           <AlertTriangle className="w-5 h-5" />
@@ -459,7 +461,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             onClick={() => setConfirmOpen(false)}
             disabled={deleting}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             variant="danger"
@@ -468,7 +470,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             disabled={!nameMatches}
             onClick={doDelete}
           >
-            Remove dataset
+            {t("Remove dataset")}
           </Button>
         </div>
       </Modal>
@@ -476,7 +478,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
       <Modal
         isOpen={exportOpen}
         onClose={() => setExportOpen(false)}
-        title="Export dataset bundle"
+        title={t("Export dataset bundle")}
       >
         <p className="modal-confirm-text">
           Export <strong>{dataset.name}</strong> as a{" "}
@@ -490,7 +492,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
             onChange={(e) => setIncludeEmbeddings(e.target.checked)}
           />
           <span className="export-option-body">
-            <strong>Include precomputed embeddings (larger file)</strong>
+            <strong>{t("Include precomputed embeddings (larger file)")}</strong>
             <span className="export-option-hint">
               Adds the vector for every chunk (e.g. 1,536 floats each) as{" "}
               <code>embeddings.npy</code>. The file becomes much larger, but the
@@ -502,10 +504,10 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
 
         <div className="topic-form-actions">
           <Button variant="ghost" onClick={() => setExportOpen(false)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button icon={Download} isLoading={exporting} onClick={doExport}>
-            Export
+            {t("Export")}
           </Button>
         </div>
       </Modal>
@@ -517,7 +519,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
         size="lg"
       >
         {itemLoading ? (
-          <LoadingSpinner size="sm" text="Loading item…" />
+          <LoadingSpinner size="sm" text={t("Loading item…")} />
         ) : item ? (
           <div className="item-view">
             <div className="item-view-head">
@@ -532,11 +534,11 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
               <button className="pager-btn" onClick={copyItem}>
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5" /> Copied
+                    <Check className="w-3.5 h-3.5" /> {t("Copied")}
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" /> Copy
+                    <Copy className="w-3.5 h-3.5" /> {t("Copy")}
                   </>
                 )}
               </button>
@@ -569,6 +571,7 @@ function RegulatoryPanel({ dataset, isAdmin, onDeleted }) {
 }
 
 export default function DatasetDetail() {
+  const { t } = useI18n();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -588,7 +591,7 @@ export default function DatasetDetail() {
   if (loading) {
     return (
       <div className="data-page">
-        <LoadingSpinner text="Loading dataset…" />
+        <LoadingSpinner text={t("Loading dataset…")} />
       </div>
     );
   }
@@ -597,7 +600,7 @@ export default function DatasetDetail() {
     return (
       <div className="data-page">
         <Button variant="ghost" icon={ArrowLeft} onClick={() => navigate("/datasets")}>
-          Back to datasets
+          {t("All datasets")}
         </Button>
         <Card className="mt-4 border-[var(--bad)]/30 bg-[var(--bad-muted)]">
           <div className="text-[var(--bad)] text-sm">{error || "Not found"}</div>

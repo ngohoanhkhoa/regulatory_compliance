@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as api from "../api/client";
+import { useI18n } from "../i18n";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
@@ -42,6 +43,7 @@ function formatDate(ts) {
 }
 
 export default function Documents() {
+  const { t } = useI18n();
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -91,7 +93,7 @@ export default function Documents() {
   };
 
   const doDelete = async (id) => {
-    if (!window.confirm("Delete this document and its indexed chunks?")) return;
+    if (!window.confirm(t("Delete this document and its indexed chunks?"))) return;
     setDeletingId(id);
     try {
       await api.deleteDocument(id);
@@ -133,11 +135,11 @@ export default function Documents() {
     <div className="documents-page">
       <div className="data-header">
         <div>
-          <h2>My Documents</h2>
+          <h2>{t("My Documents")}</h2>
           <p className="data-subtitle">
-            Add your own files (PDF, DOCX, TXT, MD, CSV). They are stored in your
-            private library and indexed for semantic search — separate from the
-            regulatory corpus.
+            {t(
+              "Add your own files (PDF, DOCX, TXT, MD, CSV). They are stored in your private library and indexed for semantic search — separate from the regulatory corpus."
+            )}
           </p>
         </div>
       </div>
@@ -162,7 +164,7 @@ export default function Documents() {
       <input
         className="document-tags-input"
         type="text"
-        placeholder="Tags / collection (optional) — e.g. contracts, 2024"
+        placeholder={t("Tags / collection (optional) — e.g. contracts, 2024")}
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         disabled={uploading}
@@ -181,24 +183,24 @@ export default function Documents() {
         {uploading ? (
           <>
             <Loader2 className="w-6 h-6 animate-spin" />
-            <span>Uploading and indexing…</span>
+            <span>{t("Uploading and indexing…")}</span>
           </>
         ) : (
           <>
             <Upload className="w-6 h-6" />
             <span>
-              <strong>Choose files</strong> or drop them here — PDF, DOCX, TXT, MD, CSV
+              {t("Choose files or drop them here — PDF, DOCX, TXT, MD, CSV")}
             </span>
           </>
         )}
       </label>
 
       {/* Library */}
-      <h3 className="documents-section-title">Library ({docs.length})</h3>
+      <h3 className="documents-section-title">{t("Library")} ({docs.length})</h3>
       {docs.length === 0 ? (
         <div className="data-empty">
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No documents yet. Add your first file above.</p>
+          <p>{t("No documents yet. Add your first file above.")}</p>
         </div>
       ) : (
         <div className="document-list">
@@ -239,13 +241,13 @@ export default function Documents() {
       )}
 
       {/* Search */}
-      <h3 className="documents-section-title">Search my documents</h3>
+      <h3 className="documents-section-title">{t("Search my documents")}</h3>
       <form className="data-toolbar" onSubmit={runSearch}>
         <div className="history-search">
           <Search className="w-4 h-4" />
           <input
             type="text"
-            placeholder="Ask something about your documents…"
+            placeholder={t("Ask something about your documents…")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -255,12 +257,12 @@ export default function Documents() {
         </Button>
       </form>
 
-      {searching && <LoadingSpinner size="sm" text="Searching…" />}
+      {searching && <LoadingSpinner size="sm" text={t("Searching…")} />}
 
       {results && results.length === 0 && (
         <div className="data-empty">
           <Search className="w-10 h-10 mx-auto mb-3 opacity-50" />
-          <p>No matches in your documents.</p>
+          <p>{t("No matches in your documents.")}</p>
         </div>
       )}
 

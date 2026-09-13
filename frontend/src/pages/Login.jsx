@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../api/AuthContext";
+import { useI18n } from "../i18n";
 import * as api from "../api/client";
 import { Shield, BookOpen, User, Lock, AlertCircle } from "lucide-react";
 import Button from "../components/ui/Button";
@@ -7,6 +8,7 @@ import Input from "../components/ui/Input";
 
 export default function Login() {
   const { signIn } = useAuth();
+  const { t } = useI18n();
   const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("0000");
@@ -23,7 +25,7 @@ export default function Login() {
       }
       await signIn(username, password);
     } catch (err) {
-      setError(err.message || "Authentication failed");
+      setError(err.message || t("Authentication failed"));
     } finally {
       setBusy(false);
     }
@@ -38,8 +40,9 @@ export default function Login() {
         </div>
 
         <p className="subtitle">
-          AI-powered answers about EU legal obligations, grounded in the
-          CEPS EurLex dataset with full citations.
+          {t(
+            "AI-powered answers about EU legal obligations, grounded in the CEPS EurLex dataset with full citations."
+          )}
         </p>
 
         <div className="login-tabs">
@@ -48,7 +51,7 @@ export default function Login() {
             onClick={() => { setMode("login"); setError(""); }}
           >
             <User className="w-4 h-4 inline mr-1" />
-            Sign In
+            {t("Sign In")}
           </button>
           <button
             className={mode === "register" ? "active" : ""}
@@ -60,7 +63,7 @@ export default function Login() {
             }}
           >
             <BookOpen className="w-4 h-4 inline mr-1" />
-            Register
+            {t("Register")}
           </button>
         </div>
 
@@ -68,7 +71,7 @@ export default function Login() {
           <Input
             icon={User}
             type="text"
-            placeholder="Username"
+            placeholder={t("Username")}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             minLength={3}
@@ -77,7 +80,7 @@ export default function Login() {
           <Input
             icon={Lock}
             type="password"
-            placeholder="Password"
+            placeholder={t("Password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={mode === "register" ? 8 : undefined}
@@ -85,7 +88,7 @@ export default function Login() {
           />
           {mode === "register" && (
             <p className="field-hint">
-              Username ≥ 3 characters, password ≥ 8 characters.
+              {t("Username ≥ 3 characters, password ≥ 8 characters.")}
             </p>
           )}
 
@@ -103,7 +106,7 @@ export default function Login() {
             isLoading={busy}
             className="w-full"
           >
-            {mode === "login" ? "Sign In" : "Create Account"}
+            {mode === "login" ? t("Sign In") : t("Create Account")}
           </Button>
         </form>
       </div>

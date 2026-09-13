@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import * as api from "../api/client";
 import { useAuth } from "../api/AuthContext";
+import { useI18n } from "../i18n";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
@@ -32,6 +33,7 @@ function formatDate(ts) {
 const EMPTY_CREATE = { username: "", password: "", is_admin: false };
 
 export default function UsersPanel() {
+  const { t } = useI18n();
   const { user: me } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,7 +143,7 @@ export default function UsersPanel() {
   };
 
   if (loading) {
-    return <LoadingSpinner size="sm" text="Loading users…" />;
+    return <LoadingSpinner size="sm" text={t("Loading users…")} />;
   }
 
   const deleteNameMatches =
@@ -167,7 +169,7 @@ export default function UsersPanel() {
       <div className="users-header">
         <h3 className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-[var(--accent)]" />
-          Users ({users.length})
+          {t("Users ({n})", { n: users.length })}
         </h3>
         <Button
           variant="secondary"
@@ -177,35 +179,35 @@ export default function UsersPanel() {
             setCreateOpen(true);
           }}
         >
-          Add user
+          {t("Add user")}
         </Button>
       </div>
 
       <div className="users-table">
         <div className="users-table-head">
-          <span>Username</span>
-          <span>Role</span>
-          <span>Created</span>
-          <span className="text-right">Actions</span>
+          <span>{t("Username")}</span>
+          <span>{t("Role")}</span>
+          <span>{t("Created")}</span>
+          <span className="text-right">{t("Actions")}</span>
         </div>
         {users.map((u) => (
           <div className="users-table-row" key={u.id}>
             <span className="users-name">
               {u.username}
-              {me?.id === u.id && <em className="users-you">you</em>}
+              {me?.id === u.id && <em className="users-you">{t("you")}</em>}
             </span>
             <span>
               {u.is_admin ? (
-                <Badge variant="success">admin</Badge>
+                <Badge variant="success">{t("admin")}</Badge>
               ) : (
-                <Badge>user</Badge>
+                <Badge>{t("user")}</Badge>
               )}
             </span>
             <span className="data-date">{formatDate(u.created_at)}</span>
             <span className="users-actions">
               <button
                 className="icon-btn"
-                title="Rename user"
+                title={t("Rename user")}
                 onClick={() => {
                   setRenameValue(u.username);
                   setRenameTarget(u);
@@ -215,7 +217,7 @@ export default function UsersPanel() {
               </button>
               <button
                 className="icon-btn"
-                title="Reset password"
+                title={t("Reset password")}
                 onClick={() => {
                   setPwValue("");
                   setPwTarget(u);
@@ -225,7 +227,7 @@ export default function UsersPanel() {
               </button>
               <button
                 className="icon-btn"
-                title={u.is_admin ? "Remove admin" : "Make admin"}
+                title={u.is_admin ? t("Remove admin") : t("Make admin")}
                 disabled={me?.id === u.id}
                 onClick={() => doToggleAdmin(u)}
               >
@@ -237,7 +239,7 @@ export default function UsersPanel() {
               </button>
               <button
                 className="icon-btn danger"
-                title="Delete user"
+                title={t("Delete user")}
                 disabled={me?.id === u.id}
                 onClick={() => {
                   setDeleteConfirm("");
@@ -255,11 +257,11 @@ export default function UsersPanel() {
       <Modal
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Add user"
+        title={t("Add user")}
       >
         <form className="topic-form" onSubmit={doCreate}>
           <Input
-            label="Username"
+            label={t("Username")}
             value={createForm.username}
             onChange={(e) =>
               setCreateForm({ ...createForm, username: e.target.value })
@@ -270,7 +272,7 @@ export default function UsersPanel() {
             required
           />
           <Input
-            label="Password"
+            label={t("Password")}
             type="password"
             value={createForm.password}
             onChange={(e) =>
@@ -288,7 +290,7 @@ export default function UsersPanel() {
                 setCreateForm({ ...createForm, is_admin: e.target.checked })
               }
             />
-            Grant admin rights
+            {t("Grant admin rights")}
           </label>
           <div className="topic-form-actions">
             <Button
@@ -296,10 +298,10 @@ export default function UsersPanel() {
               variant="ghost"
               onClick={() => setCreateOpen(false)}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button type="submit" icon={Plus} isLoading={savingCreate}>
-              Create user
+              {t("Create user")}
             </Button>
           </div>
         </form>
@@ -309,10 +311,10 @@ export default function UsersPanel() {
       <Modal
         isOpen={!!renameTarget}
         onClose={() => setRenameTarget(null)}
-        title="Change username"
+        title={t("Change username")}
       >
         <Input
-          label="New username"
+          label={t("New username")}
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
           minLength={3}
@@ -320,13 +322,13 @@ export default function UsersPanel() {
         />
         <div className="topic-form-actions">
           <Button variant="ghost" onClick={() => setRenameTarget(null)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             disabled={renameValue.trim().length < 3}
             onClick={doRename}
           >
-            Save
+            {t("Save")}
           </Button>
         </div>
       </Modal>
@@ -338,7 +340,7 @@ export default function UsersPanel() {
         title={`Reset password — ${pwTarget?.username || ""}`}
       >
         <Input
-          label="New password"
+          label={t("New password")}
           type="password"
           value={pwValue}
           onChange={(e) => setPwValue(e.target.value)}
@@ -347,10 +349,10 @@ export default function UsersPanel() {
         />
         <div className="topic-form-actions">
           <Button variant="ghost" onClick={() => setPwTarget(null)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button disabled={pwValue.length < 8} icon={KeyRound} onClick={doResetPassword}>
-            Reset password
+            {t("Reset password")}
           </Button>
         </div>
       </Modal>
@@ -359,7 +361,7 @@ export default function UsersPanel() {
       <Modal
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete user"
+        title={t("Delete user")}
       >
         <div className="danger-notice">
           <AlertTriangle className="w-5 h-5" />
@@ -392,7 +394,7 @@ export default function UsersPanel() {
             onClick={() => setDeleteTarget(null)}
             disabled={deleting}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             variant="danger"
@@ -401,7 +403,7 @@ export default function UsersPanel() {
             disabled={!deleteNameMatches}
             onClick={doDelete}
           >
-            Delete user
+            {t("Delete user")}
           </Button>
         </div>
       </Modal>

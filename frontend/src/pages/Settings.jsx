@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getSettings, setSetting, LANGUAGES } from "../api/settings";
 import { useAuth } from "../api/AuthContext";
+import { useI18n } from "../i18n";
 import * as api from "../api/client";
 import {
   Filter,
@@ -13,7 +14,6 @@ import {
   CheckCircle,
   User,
   Lock,
-  ShieldCheck,
 } from "lucide-react";
 import Toggle from "../components/ui/Toggle";
 import Card from "../components/ui/Card";
@@ -32,13 +32,11 @@ function Message({ msg }) {
 
 export default function SettingsPage() {
   const { user, refresh } = useAuth();
+  const { lang, setLang, t } = useI18n();
   const [includeRepealed, setIncludeRepealed] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [autoExpandSources, setAutoExpandSources] = useState(true);
-  const [language, setLanguage] = useState(
-    () => getSettings().language || "en"
-  );
   const [saved, setSaved] = useState(false);
 
   const [username, setUsername] = useState(user?.username || "");
@@ -60,22 +58,20 @@ export default function SettingsPage() {
     setUsername(user?.username || "");
   }, [user?.username]);
 
-  useEffect(() => {
-    document.documentElement.lang = language;
-  }, [language]);
-
-  const handleLanguage = (code) => {
-    setLanguage(code);
-    setSetting("language", code);
+  const flashSaved = () => {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleLanguage = (code) => {
+    setLang(code);
+    flashSaved();
   };
 
   const handleToggle = (key, value, setter) => {
     setter(value);
     if (key) setSetting(key, value);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    flashSaved();
   };
 
   const saveUsername = async (e) => {
@@ -85,7 +81,7 @@ export default function SettingsPage() {
     try {
       await api.updateUsername(username.trim());
       await refresh();
-      setUsernameMsg({ type: "ok", text: "Username updated." });
+      setUsernameMsg({ type: "ok", text: t("Username updated.") });
     } catch (err) {
       setUsernameMsg({
         type: "err",
@@ -99,11 +95,14 @@ export default function SettingsPage() {
   const savePassword = async (e) => {
     e.preventDefault();
     if (newPw.length < 8) {
-      setPwMsg({ type: "err", text: "New password must be at least 8 characters." });
+      setPwMsg({
+        type: "err",
+        text: t("New password must be at least 8 characters."),
+      });
       return;
     }
     if (newPw !== confirmPw) {
-      setPwMsg({ type: "err", text: "New passwords do not match." });
+      setPwMsg({ type: "err", text: t("New passwords do not match.") });
       return;
     }
     setSavingPw(true);
@@ -113,7 +112,7 @@ export default function SettingsPage() {
       setCurrentPw("");
       setNewPw("");
       setConfirmPw("");
-      setPwMsg({ type: "ok", text: "Password changed." });
+      setPwMsg({ type: "ok", text: t("Password changed.") });
     } catch (err) {
       setPwMsg({
         type: "err",
@@ -126,12 +125,12 @@ export default function SettingsPage() {
 
   return (
     <div className="settings-page">
-      <h2>Settings</h2>
+      <h2>{t("Settings")}</h2>
 
       {saved && (
         <div className="toast">
           <CheckCircle className="w-4 h-4 inline mr-2" />
-          Settings saved
+          {t("Settings saved")}
         </div>
       )}
 
@@ -140,12 +139,12 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <User className="w-4 h-4 text-[var(--accent)]" />
-            Account
+            {t("Account")}
           </h3>
 
           <form className="settings-subform" onSubmit={saveUsername}>
             <Input
-              label="Username"
+              label={t("Username")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               minLength={3}
@@ -160,24 +159,24 @@ export default function SettingsPage() {
                 isLoading={savingUsername}
                 disabled={!username.trim() || username.trim() === user?.username}
               >
-                Save username
+                {t("Save username")}
               </Button>
             </div>
           </form>
 
           <form className="settings-subform" onSubmit={savePassword}>
             <h4 className="settings-subtitle">
-              <Lock className="w-3.5 h-3.5" /> Change password
+              <Lock className="w-3.5 h-3.5" /> {t("Change password")}
             </h4>
             <Input
-              label="Current password"
+              label={t("Current password")}
               type="password"
               value={currentPw}
               onChange={(e) => setCurrentPw(e.target.value)}
               required
             />
             <Input
-              label="New password"
+              label={t("New password")}
               type="password"
               value={newPw}
               onChange={(e) => setNewPw(e.target.value)}
@@ -185,7 +184,7 @@ export default function SettingsPage() {
               required
             />
             <Input
-              label="Confirm new password"
+              label={t("Confirm new password")}
               type="password"
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
@@ -200,7 +199,7 @@ export default function SettingsPage() {
                 isLoading={savingPw}
                 disabled={!currentPw || !newPw || !confirmPw}
               >
-                Change password
+                {t("Change password")}
               </Button>
             </div>
           </form>
@@ -212,17 +211,17 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-[var(--accent)]" />
-            Retrieval
+            {t("Retrieval")}
           </h3>
           <div className="settings-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-[var(--text)]">
-                Include repealed / superseded acts
+                {t("Include repealed / superseded acts")}
               </label>
               <p className="settings-desc">
-                When enabled, search results include legislation that has been repealed,
-                expired, or superseded. Disabled by default — only <em>In Force</em> acts
-                are returned.
+                {t(
+                  "When enabled, search results include legislation that has been repealed, expired, or superseded. Disabled by default — only In Force acts are returned."
+                )}
               </p>
             </div>
             <div className="settings-control">
@@ -240,15 +239,15 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <Moon className="w-4 h-4 text-[var(--accent)]" />
-            Display
+            {t("Display")}
           </h3>
           <div className="settings-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-[var(--text)]">
-                Dark mode
+                {t("Dark mode")}
               </label>
               <p className="settings-desc">
-                Use dark color scheme throughout the application.
+                {t("Use dark color scheme throughout the application.")}
               </p>
             </div>
             <div className="settings-control">
@@ -261,10 +260,10 @@ export default function SettingsPage() {
           <div className="settings-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-[var(--text)]">
-                Auto-expand sources
+                {t("Auto-expand sources")}
               </label>
               <p className="settings-desc">
-                Automatically expand the sources panel in chat responses.
+                {t("Automatically expand the sources panel in chat responses.")}
               </p>
             </div>
             <div className="settings-control">
@@ -282,22 +281,23 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-[var(--accent)]" />
-            Language
+            {t("Language")}
           </h3>
           <div className="settings-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-[var(--text)]">
-                Answer language
+                {t("Interface & answers")}
               </label>
               <p className="settings-desc">
-                The language the assistant replies in. CELEX numbers, act
-                titles, and links are kept unchanged.
+                {t(
+                  "Changes the interface language and the language the assistant replies in. CELEX numbers, act titles, and links stay unchanged."
+                )}
               </p>
             </div>
             <div className="settings-control">
               <select
                 className="settings-select"
-                value={language}
+                value={lang}
                 onChange={(e) => handleLanguage(e.target.value)}
               >
                 {LANGUAGES.map((l) => (
@@ -316,15 +316,15 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-[var(--accent)]" />
-            Notifications
+            {t("Notifications")}
           </h3>
           <div className="settings-row">
             <div className="flex-1">
               <label className="block text-sm font-medium text-[var(--text)]">
-                Enable notifications
+                {t("Enable notifications")}
               </label>
               <p className="settings-desc">
-                Receive browser notifications for long-running queries.
+                {t("Receive browser notifications for long-running queries.")}
               </p>
             </div>
             <div className="settings-control">
@@ -342,20 +342,20 @@ export default function SettingsPage() {
         <div className="settings-group">
           <h3 className="flex items-center gap-2">
             <Server className="w-4 h-4 text-[var(--accent)]" />
-            API Information
+            {t("API Information")}
           </h3>
           <div className="space-y-3">
             <div className="settings-info">
               <Database className="w-4 h-4" />
-              <span>Local vector store with CEPS EurLex dataset</span>
+              <span>{t("Local vector store with CEPS EurLex dataset")}</span>
             </div>
             <div className="settings-info">
               <Globe className="w-4 h-4" />
-              <span>LLM generation via OpenRouter API</span>
+              <span>{t("LLM generation via OpenRouter API")}</span>
             </div>
             <div className="settings-info">
               <Info className="w-4 h-4" />
-              <span>Dataset frozen at August 2019</span>
+              <span>{t("Dataset frozen at August 2019")}</span>
             </div>
           </div>
         </div>

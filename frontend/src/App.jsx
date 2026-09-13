@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-do
 import { LogOut } from "lucide-react";
 import { AuthProvider, useAuth } from "./api/AuthContext";
 import { ChatProvider } from "./api/ChatContext";
+import { LanguageProvider, useI18n } from "./i18n";
 import Login from "./pages/Login";
 import Chat from "./pages/Chat";
 import Topics from "./pages/Topics";
@@ -12,22 +13,23 @@ import "./styles/main.css";
 
 function NavBar() {
   const { user, signOut } = useAuth();
+  const { t } = useI18n();
   if (!user) return null;
   return (
     <nav className="navbar">
       <div className="navbar-brand">Regulatory Compliance</div>
       <div className="navbar-links">
-        <NavLink to="/chat" className={({ isActive }) => isActive ? "active" : ""}>Chat</NavLink>
-        <NavLink to="/topics" className={({ isActive }) => isActive ? "active" : ""}>Topics</NavLink>
-        <NavLink to="/datasets" className={({ isActive }) => isActive ? "active" : ""}>Datasets</NavLink>
+        <NavLink to="/chat" className={({ isActive }) => isActive ? "active" : ""}>{t("Chat")}</NavLink>
+        <NavLink to="/topics" className={({ isActive }) => isActive ? "active" : ""}>{t("Topics")}</NavLink>
+        <NavLink to="/datasets" className={({ isActive }) => isActive ? "active" : ""}>{t("Datasets")}</NavLink>
       </div>
       <div className="navbar-user">
-        <NavLink to="/settings" className="navbar-username" title="Account & settings">
+        <NavLink to="/settings" className="navbar-username" title={t("Account & settings")}>
           {user.username}
         </NavLink>
         <button className="signout-btn" onClick={signOut}>
           <LogOut className="w-4 h-4" />
-          Sign Out
+          {t("Sign Out")}
         </button>
       </div>
     </nav>
@@ -65,9 +67,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

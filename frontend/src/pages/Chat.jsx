@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import * as api from "../api/client";
 import { getSettings } from "../api/settings";
 import { useChat } from "../api/ChatContext";
+import { useI18n } from "../i18n";
 import {
   Send,
   Copy,
@@ -76,11 +77,12 @@ function formatText(text) {
 }
 
 function LoadingStatus() {
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const steps = [
-    { icon: MessageSquare, text: "Understanding your question…" },
-    { icon: FileText, text: "Searching EU legislation…" },
-    { icon: Send, text: "Generating response…" },
+    { icon: MessageSquare, text: t("Understanding your question…") },
+    { icon: FileText, text: t("Searching EU legislation…") },
+    { icon: Send, text: t("Generating response…") },
   ];
 
   useEffect(() => {
@@ -104,6 +106,7 @@ function LoadingStatus() {
 }
 
 function MessageBubble({ msg }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(true);
 
@@ -170,7 +173,7 @@ function MessageBubble({ msg }) {
             onClick={copyAnswer}
           >
             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? "Copied" : "Copy"}
+            {copied ? t("Copied") : t("Copy")}
           </button>
           <button onClick={() => giveFeedback(1)} title="Helpful">
             <ThumbsUp className="w-3.5 h-3.5" />
@@ -196,7 +199,7 @@ function MessageBubble({ msg }) {
             <div className="sources-header" onClick={() => setSourcesOpen(o => !o)}>
               <ChevronRight className={`w-3.5 h-3.5 transition-transform ${sourcesOpen ? "rotate-90" : ""}`} />
               <FileText className="w-3.5 h-3.5" />
-              {msg.sources.length} source{msg.sources.length > 1 ? "s" : ""}
+              {msg.sources.length} {t("Sources")}
             </div>
             {sourcesOpen && msg.sources.map((s, j) => (
               <div key={j} className="source-item" id={`source-${j + 1}`}>
@@ -236,6 +239,7 @@ function MessageBubble({ msg }) {
 
 export default function Chat() {
   const { messages, setMessages, activeConversationId, setActiveConversationId } = useChat();
+  const { t } = useI18n();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [historyItems, setHistoryItems] = useState([]);
@@ -428,7 +432,7 @@ export default function Chat() {
       // Refresh sidebar history so the new exchange appears.
       refreshHistory();
     } catch (err) {
-      setMessages((m) => [...m, { role: "error", text: err.message || "Query failed" }]);
+      setMessages((m) => [...m, { role: "error", text: err.message || t("Query failed") }]);
     } finally {
       setBusy(false);
       inputRef.current?.focus();
@@ -519,10 +523,10 @@ export default function Chat() {
       {/* Sidebar */}
       <aside className="chat-sidebar">
         <div className="sidebar-header">
-          <h3>Conversations</h3>
+          <h3>{t("Conversations")}</h3>
           <button className="sidebar-new-btn" onClick={startNewChat}>
             <Plus className="w-4 h-4" />
-            New Chat
+            {t("New Chat")}
           </button>
         </div>
         <div className="chat-sidebar-list">
@@ -538,18 +542,18 @@ export default function Chat() {
           <div className="chat-sidebar-section">
             <div className="chat-sidebar-section-title">
               <History className="w-3 h-3" />
-              Recent History
+              {t("Recent History")}
               <button
                 className="chat-sidebar-history-btn"
                 onClick={() => setHistoryOpen(true)}
                 title="Open full history"
               >
                 <Maximize2 className="w-3 h-3" />
-                Open
+                {t("Open")}
               </button>
             </div>
             {historyItems.length === 0 ? (
-              <p className="chat-sidebar-empty">No recent chats yet</p>
+              <p className="chat-sidebar-empty">{t("No recent chats yet")}</p>
             ) : (
               historyItems.map((item) => (
                 <div
@@ -577,7 +581,7 @@ export default function Chat() {
           setHistoryOpen(false);
           refreshHistory();
         }}
-        title="Chat History"
+        title={t("Chat History")}
         size="lg"
       >
         <HistoryPage
@@ -594,8 +598,12 @@ export default function Chat() {
           {messages.length === 0 && (
             <div className="empty-hint">
               <MessageSquare className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-              <strong>Ask about EU regulations</strong>
-              <p>Ask legal questions like "Is the GDPR still in force?" or explore the dataset with "How many acts are there?"</p>
+              <strong>{t("Ask about EU regulations")}</strong>
+              <p>
+                {t(
+                  'Ask legal questions like "Is the GDPR still in force?" or explore the dataset with "How many acts are there?"'
+                )}
+              </p>
             </div>
           )}
           {messages.map((m, i) => (
@@ -608,7 +616,7 @@ export default function Chat() {
         <div className="chat-input-wrapper">
           {datasets.length > 0 && (
             <div className="dataset-selector">
-              <span className="dataset-selector-label">Datasets</span>
+              <span className="dataset-selector-label">{t("Datasets")}</span>
               <div className="dataset-chips">
                 {datasets.map((d) => (
                   <button
@@ -686,7 +694,7 @@ export default function Chat() {
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a question… type @ to mention a document or act"
+              placeholder={t("Ask a question… type @ to mention a document or act")}
               disabled={busy}
             />
             <button type="submit" disabled={busy || !input.trim()}>
